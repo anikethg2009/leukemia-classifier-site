@@ -83,21 +83,35 @@
     const raw = (location.hash || '').replace(/^#/, '');
     const owner = ownerOf(raw);
     show(owner || IDS[0], opts || {});
-    if (owner && IDS.indexOf(raw) === -1) scrollTo(raw);
+    if (owner && IDS.indexOf(raw) === -1) scrollTo(raw, false);
   }
 
-  function scrollTo (id) {
+  /* Scrolling has to happen after the panel is displayed and laid out, or the
+     target is still in a display:none subtree and scrollIntoView is a no-op
+     that silently leaves you at the top. */
+  function scrollTo (id, focusIt) {
     const el = document.getElementById(id);
     if (!el) return;
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    requestAnimationFrame(() => {
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+      if (focusIt) {
+        /* Following an anchor should land focus on the thing you asked for,
+           not on the panel that happens to contain it. */
+        if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '-1');
+        el.focus({ preventScroll: true });
+      }
+    });
   }
 
+  /* Tab activation focuses the panel. Anchor navigation focuses the target
+     section instead, so "Read the background" leaves you at that heading. */
   function go (id, anchor) {
     const hash = '#' + (anchor || id);
     if (location.hash !== hash) history.pushState(null, '', hash);
-    show(id, { focusPanel: true });
-    if (anchor) scrollTo(anchor);
+    show(id, { focusPanel: !anchor });
+    if (anchor) scrollTo(anchor, true);
+    else requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'auto' }));
   }
 
   /* ── interaction ────────────────────────────────────────────────────── */
