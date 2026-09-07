@@ -1,4 +1,24 @@
 /* ============================================================================
+   Self-hosted, subset to the 85 printable characters the page actually
+   renders (verified against the live DOM, including U+00D7 multiplication,
+   U+2212 true minus, U+00B7 middle dot, U+2013/2014 dashes, U+2026 ellipsis
+   and U+00A0). Variable axes preserved, so every weight the design uses is
+   still reachable from one file per family.
+   ========================================================================= */
+@font-face{
+  font-family:'Inter'; font-style:normal; font-weight:100 900;
+  font-display:swap; src:url('fonts/inter.woff2') format('woff2');
+}
+@font-face{
+  font-family:'JetBrains Mono'; font-style:normal; font-weight:400 800;
+  font-display:swap; src:url('fonts/jetbrains-mono.woff2') format('woff2');
+}
+@font-face{
+  font-family:'Schibsted Grotesk'; font-style:normal; font-weight:400 900;
+  font-display:swap; src:url('fonts/schibsted-grotesk.woff2') format('woff2');
+}
+
+/* ============================================================================
    Leukemic lymphoblast screening aid — editorial / corporate build
 
    Ink is a single colour at varying alpha. Two hues:

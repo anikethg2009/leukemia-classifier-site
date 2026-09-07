@@ -108,7 +108,7 @@ const svg = (tag, attrs) => {
   function draw () {
     ctx.clearRect(0, 0, W, H);
 
-    ctx.font = '500 11px "IBM Plex Mono", monospace';
+    ctx.font = '500 11px "JetBrains Mono", ui-monospace, monospace';
     ctx.textBaseline = 'alphabetic';
     ctx.fillStyle = C.soft;
     for (const l of cv._labels) ctx.fillText(l.t, 0, l.y);
@@ -239,11 +239,11 @@ const svg = (tag, attrs) => {
     s.appendChild(svg('line', { x1: px(0), y1: py(t), x2: px(1), y2: py(t), stroke: CD.rule, 'stroke-width': 1 }));
 
     const lx = svg('text', { x: px(t), y: py(0) + 17, fill: CD.soft, 'font-size': 10,
-      'text-anchor': 'middle', 'font-family': '"IBM Plex Mono", monospace' });
+      'text-anchor': 'middle', 'font-family': '"JetBrains Mono", ui-monospace, monospace' });
     lx.textContent = t.toFixed(1); s.appendChild(lx);
 
     const ly = svg('text', { x: px(0) - 8, y: py(t) + 3.5, fill: CD.soft, 'font-size': 10,
-      'text-anchor': 'end', 'font-family': '"IBM Plex Mono", monospace' });
+      'text-anchor': 'end', 'font-family': '"JetBrains Mono", ui-monospace, monospace' });
     ly.textContent = t.toFixed(1); s.appendChild(ly);
   }
 
@@ -277,27 +277,27 @@ const svg = (tag, attrs) => {
     fill: CD.panel, stroke: CD.mark, 'stroke-width': 2.5 }));
 
   const opLabel = svg('text', { x: px(ox) + 11, y: py(oy) + 15, fill: CD.mark, 'font-size': 10,
-    'font-family': '"IBM Plex Mono", monospace', 'font-weight': 600 });
+    'font-family': '"JetBrains Mono", ui-monospace, monospace', 'font-weight': 600 });
   opLabel.textContent = 'threshold ' + THRESHOLD.toFixed(3);
   s.appendChild(opLabel);
   const opSub = svg('text', { x: px(ox) + 11, y: py(oy) + 28, fill: CD.mark, 'font-size': 9.5,
-    'font-family': '"IBM Plex Mono", monospace' });
+    'font-family': '"JetBrains Mono", ui-monospace, monospace' });
   opSub.textContent = (COUNTS.fp / N_NORM).toFixed(3) + ' fpr / ' +
                       (COUNTS.tp / N_LEUK).toFixed(3) + ' tpr';
   s.appendChild(opSub);
 
   const aucLabel = svg('text', { x: px(0.98), y: py(0.06), fill: CD.ink, 'font-size': 11,
-    'text-anchor': 'end', 'font-family': '"IBM Plex Mono", monospace', 'font-weight': 600 });
+    'text-anchor': 'end', 'font-family': '"JetBrains Mono", ui-monospace, monospace', 'font-weight': 600 });
   aucLabel.textContent = 'AUC ' + auc.toFixed(3);
   s.appendChild(aucLabel);
 
   const ax = svg('text', { x: px(0.5), y: h - 4, fill: CD.soft, 'font-size': 10.5,
-    'text-anchor': 'middle', 'font-family': '"IBM Plex Mono", monospace' });
+    'text-anchor': 'middle', 'font-family': '"JetBrains Mono", ui-monospace, monospace' });
   ax.textContent = 'false positive rate';
   s.appendChild(ax);
 
   const ay = svg('text', { x: 13, y: py(0.5), fill: CD.soft, 'font-size': 10.5,
-    'text-anchor': 'middle', 'font-family': '"IBM Plex Mono", monospace',
+    'text-anchor': 'middle', 'font-family': '"JetBrains Mono", ui-monospace, monospace',
     transform: `rotate(-90 13 ${py(0.5)})` });
   ay.textContent = 'true positive rate';
   s.appendChild(ay);
@@ -322,7 +322,7 @@ const svg = (tag, attrs) => {
 
   const text = (x, y, str, o = {}) => {
     const t = svg('text', Object.assign({
-      x, y, 'font-size': 10.5, fill: C.soft, 'font-family': '"IBM Plex Mono", monospace'
+      x, y, 'font-size': 10.5, fill: C.soft, 'font-family': '"JetBrains Mono", ui-monospace, monospace'
     }, o));
     t.textContent = str;
     s.appendChild(t);
@@ -397,22 +397,49 @@ const svg = (tag, attrs) => {
 (function demo () {
   const MODEL_URL   = 'models/model.onnx';
   const ORT_VERSION = '1.20.1';
+  const ORT_SRC     = 'vendor/ort/ort.wasm.min.js';
+  /* Must be an absolute URL: ORT dynamically import()s the .mjs loader from
+     here, and a bare relative path is not a valid module specifier. Derived
+     from baseURI so it also resolves under a GitHub Pages subpath. */
+  const ORT_WASM    = new URL('vendor/ort/', document.baseURI).href;
+  /* Bump when the weights change; older caches are deleted on load. */
+  const CACHE_NAME  = 'alln-weights-v1';
+  const MODEL_BYTES = 47693953;
   /* Caffe-style ResNet-50 preprocessing: BGR, mean-subtracted, NOT rescaled. */
   const MEAN_B = 103.939, MEAN_G = 116.779, MEAN_R = 123.68;
 
-  /* ORT is ~3 MB. Nothing fetches it until the visitor asks for the model. */
+  /* The runtime is served from this origin and is not fetched until the
+     visitor asks for the model, or hovers the Demo tab. */
   let ortPromise = null;
   function ensureOrt () {
     if (typeof ort !== 'undefined') return Promise.resolve();
     if (ortPromise) return ortPromise;
     ortPromise = new Promise((res, rej) => {
       const el = document.createElement('script');
-      el.src = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@' + ORT_VERSION + '/dist/ort.min.js';
+      el.src = ORT_SRC;
       el.onload  = () => res();
       el.onerror = () => { ortPromise = null; rej(new Error('ort-cdn')); };
       document.head.appendChild(el);
     });
     return ortPromise;
+  }
+  window.__ensureOrt = ensureOrt;   /* the Demo tab prefetches the runtime only */
+
+  /* Drop caches from earlier weight versions so an old copy cannot linger. */
+  if (window.caches && caches.keys) {
+    caches.keys().then(ks => ks.forEach(k => {
+      if (/^alln-weights-/.test(k) && k !== CACHE_NAME) caches.delete(k);
+    })).catch(() => {});
+  }
+
+  function connectionWarning () {
+    const c = navigator.connection;
+    if (!c) return null;
+    if (c.saveData) return 'Data Saver is on.';
+    if (/^(slow-2g|2g|3g)$/.test(c.effectiveType || '')) {
+      return 'This looks like a ' + c.effectiveType + ' connection.';
+    }
+    return null;
   }
 
   const $ = id => document.getElementById(id);
@@ -474,7 +501,13 @@ const svg = (tag, attrs) => {
 
   ack.addEventListener('change', () => {
     loadBtn.disabled = !ack.checked || !!session;
-    if (ack.checked && !session) setHint(modelStatus, 'Ready. About 48 MB will be downloaded once, then cached by the browser.');
+    if (ack.checked && !session) {
+      const warn = connectionWarning();
+      setHint(modelStatus, warn
+        ? warn + ' Loading the network means downloading about 48 MB.'
+        : 'Ready. About 48 MB will be downloaded once, then cached by the browser.',
+        warn ? 'bad' : '');
+    }
     else if (!ack.checked) {
       setHint(modelStatus, 'Tick the box above to enable.');
       file.disabled = true;
@@ -494,20 +527,35 @@ const svg = (tag, attrs) => {
 
     try {
       await ensureOrt();
-      ort.env.wasm.wasmPaths  = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@' + ORT_VERSION + '/dist/';
+      ort.env.wasm.wasmPaths  = ORT_WASM;
       ort.env.wasm.numThreads = 1;
       ort.env.logLevel = 'error';
 
-      const res = await fetch(MODEL_URL);
+      /* A complete, verified copy may already be cached from a previous
+         visit; a partial one is never written, so anything here is whole. */
+      let cache = null, cached = null;
+      try {
+        if (window.caches) {
+          cache = await caches.open(CACHE_NAME);
+          cached = await cache.match(MODEL_URL);
+        }
+      } catch (e) { cache = null; }
+
+      const res = cached || await fetch(MODEL_URL);
       if (!res.ok) {
         throw Object.assign(new Error('http'), { http: res.status });
+      }
+      if (cached) {
+        setHint(modelStatus, 'Loading the network from this browser\u2019s cache.');
+        progressBar.style.width = '100%';
+        progressTxt.textContent = 'from cache';
       }
 
       const total = Number(res.headers.get('content-length')) || 0;
       const chunks = [];
       let got = 0;
 
-      if (res.body && res.body.getReader) {
+      if (!cached && res.body && res.body.getReader) {
         const reader = res.body.getReader();
         for (;;) {
           const { done, value } = await reader.read();
@@ -528,6 +576,19 @@ const svg = (tag, attrs) => {
       const bytes = new Uint8Array(got);
       let off = 0;
       for (const c of chunks) { bytes.set(c, off); off += c.length; }
+
+      /* Never cache a short read: a truncated model is worse than none. */
+      if (!cached && cache && got === MODEL_BYTES) {
+        try {
+          await cache.put(MODEL_URL, new Response(bytes, {
+            headers: { 'Content-Type': 'application/octet-stream',
+                       'Content-Length': String(got) }
+          }));
+        } catch (e) {
+          /* QuotaExceededError, or private browsing with no storage: the demo
+             still works, it just downloads again next time. */
+        }
+      }
 
       progressBar.style.width = '100%';
       progressTxt.textContent = 'Compiling…';

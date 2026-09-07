@@ -166,5 +166,19 @@
   bar.hidden = false;
   syncFromHash();
 
+  /* Hovering or focusing the Demo tab warms the runtime only. The 47.7 MB
+     of weights are never touched here; they wait for the gate. */
+  const demoTab = tabOf('demo');
+  if (demoTab) {
+    let warmed = false;
+    const warm = () => {
+      if (warmed) return;
+      warmed = true;
+      if (typeof window.__ensureOrt === 'function') window.__ensureOrt().catch(() => {});
+    };
+    demoTab.addEventListener('pointerenter', warm, { once: true });
+    demoTab.addEventListener('focus', warm, { once: true });
+  }
+
   window.siteTabs = { show: show, go: go, current: () => current, ids: IDS };
 })();
