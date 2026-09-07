@@ -388,18 +388,17 @@ const THRESHOLD = 0.770;
 })();
 
 /* ══════════════════════════════════════════════════════════════════════════
-   5. Motion — GSAP + ScrollTrigger
+   5. Motion — IntersectionObserver driving CSS transitions.
 
-   The hidden initial state lives under html.js-anim, and that class is only
-   added once GSAP is confirmed up. A blocked CDN, no JS, or reduced motion
-   all leave the page fully visible. The disclaimer is never revealed on
-   scroll under any of these paths.
+   This replaced GSAP + ScrollTrigger, which cost ~956 ms of main-thread
+   blocking on a throttled mobile load (gsap core itself was only ~17 ms; the
+   expense was ScrollTrigger building and measuring triggers). The reveal and
+   mask thresholds below are the ones ScrollTrigger used, so the page reads
+   the same. Parallax on the full-bleed band is gone, and so is the load
+   intro: the anti-flash job it was quietly doing now belongs to the
+   synchronous head script, which is the honest place for it.
    ══════════════════════════════════════════════════════════════════════════ */
 (function motion () {
-  const intro  = document.getElementById('intro');
-  const introN = document.getElementById('introN');
-  const ready  = typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined';
-
   /* ── accordion: opening is pure CSS; closing needs the panel to finish
         collapsing before `open` is removed, or it snaps shut ────────────── */
   document.querySelectorAll('.faq details').forEach(d => {
@@ -415,11 +414,9 @@ const THRESHOLD = 0.770;
     });
   });
 
-  if (!ready) { if (intro) intro.remove(); return; }
-  gsap.registerPlugin(ScrollTrigger);
-
   /* Split each masked line into words so they can stagger inside the clip. */
   document.querySelectorAll('.mask > span').forEach(line => {
+    if (line.querySelector('.w')) return;
     const words = line.textContent.split(/\s+/).filter(Boolean);
     line.textContent = '';
     words.forEach((w, i) => {
@@ -430,116 +427,89 @@ const THRESHOLD = 0.770;
     });
   });
 
-  if (REDUCED) {
-    document.documentElement.classList.add('js-anim');   /* CSS forces all visible */
-    if (intro) intro.remove();
-    document.querySelectorAll('[data-count]').forEach(el => {
-      const dp = +el.dataset.dp || 0, v = parseFloat(el.dataset.count);
-      el.textContent = dp ? v.toFixed(dp) : Math.round(v).toLocaleString('en-US');
-    });
-    return;
+  const fmt = (el, v) => {
+    const dp = +el.dataset.dp || 0;
+    return dp ? v.toFixed(dp) : Math.round(v).toLocaleString('en-US');
+  };
+
+  /* Reserve the width of the final value before counting starts, so the
+     digits cannot reflow the line on their way up. */
+  function reserve (el) {
+    const target = parseFloat(el.dataset.count);
+    el.textContent = fmt(el, target);
+    const w = el.getBoundingClientRect().width;
+    if (w) el.style.minWidth = w.toFixed(2) + 'px';
+    return target;
   }
 
   document.documentElement.classList.add('js-anim');
-  gsap.set('.mask > span', { y: 0 });
-  gsap.set(gsap.utils.toArray('.mask .w'), { yPercent: 105 });
-  gsap.set('[data-reveal]', { y: 24 });
 
-  const raise = (scope, delay) => gsap.to(scope.querySelectorAll('.w'), {
-    yPercent: 0, duration: .8, ease: 'power3.out', stagger: .045, delay: delay || 0
+  if (REDUCED) {
+    /* CSS already forces everything visible; just land the counters. */
+    document.querySelectorAll('[data-count]').forEach(reserve);
+    return;
+  }
+
+  function countUp (el) {
+    const target = parseFloat(el.dataset.count);
+    el.textContent = fmt(el, 0);
+    const t0 = performance.now(), dur = 1100;
+    (function step (now) {
+      const t = Math.min(1, (now - t0) / dur);
+      el.textContent = fmt(el, target * (1 - Math.pow(1 - t, 3)));
+      if (t < 1) requestAnimationFrame(step);
+      else el.textContent = fmt(el, target);
+    })(t0);
+  }
+
+  /* rootMargin mirrors ScrollTrigger's "top NN%" start positions */
+  const watch = (margin, onHit) => new IntersectionObserver((entries, obs) => {
+    const hits = entries.filter(e => e.isIntersecting);
+    if (hits.length) onHit(hits, obs);
+  }, { rootMargin: margin, threshold: 0 });
+
+  const revealIO = watch('0px 0px -10% 0px', (hits, obs) => {
+    hits.forEach((e, i) => {
+      e.target.style.transitionDelay = (i * 90) + 'ms';
+      e.target.classList.add('is-in');
+      obs.unobserve(e.target);
+    });
   });
 
-  /* ── page-load intro: percentage counter, then a wipe. ~1.35s total ───── */
-  function start () {
-    const hero = document.querySelector('.hero h1');
-    if (hero) raise(hero, .05);
-    gsap.to('.hero [data-reveal]', {
-      opacity: 1, y: 0, duration: .7, ease: 'power2.out', stagger: .09, delay: .35
+  const maskIO = watch('0px 0px -14% 0px', (hits, obs) => {
+    hits.forEach(e => {
+      e.target.querySelectorAll('.w').forEach((w, i) => {
+        w.style.transitionDelay = (i * 45) + 'ms';
+      });
+      e.target.classList.add('is-in');
+      obs.unobserve(e.target);
     });
-  }
+  });
 
-  if (intro && introN) {
-    const n = { v: 0 };
-    gsap.timeline()
-      .to(n, { v: 100, duration: .9, ease: 'power2.inOut',
-               onUpdate () { introN.textContent = Math.round(n.v); } })
-      .to(intro, { yPercent: -100, duration: .45, ease: 'power3.inOut',
-                   onComplete () { intro.remove(); } }, '-=.04')
-      .add(start, '-=.30');
-  } else {
-    start();
-  }
+  const countIO = watch('0px 0px -12% 0px', (hits, obs) => {
+    hits.forEach(e => { countUp(e.target); obs.unobserve(e.target); });
+  });
 
-  /* ── triggers are built per panel, on first activation ─────────────────
-     Building all of them on load meant ~50 ScrollTriggers, most of them
-     measuring panels nobody had opened yet and all of them recomputing on
-     every refresh. Each panel now pays for its own on the click that reveals
-     it; the hero and footer live outside the panels and are wired once. ── */
   const wired = new Set();
-
   function wire (root) {
     if (!root || wired.has(root)) return;
     wired.add(root);
-
-    root.querySelectorAll('h2').forEach(h => {
-      if (!h.querySelector('.w') || h.closest('.hero')) return;
-      ScrollTrigger.create({ trigger: h, start: 'top 86%', once: true,
-                             onEnter: () => raise(h) });
-    });
-
-    const reveals = root.querySelectorAll('[data-reveal]');
-    if (reveals.length) {
-      ScrollTrigger.batch(reveals, {
-        start: 'top 90%',
-        onEnter: batch => gsap.to(batch, {
-          opacity: 1, y: 0, duration: .65, ease: 'power2.out', stagger: .09, overwrite: true
-        })
-      });
-    }
-
-    root.querySelectorAll('[data-count]').forEach(el => {
-      const target = parseFloat(el.dataset.count), dp = +el.dataset.dp || 0;
-      const fmt = v => dp ? v.toFixed(dp) : Math.round(v).toLocaleString('en-US');
-      el.textContent = fmt(0);
-      const o = { v: 0 };
-      ScrollTrigger.create({
-        trigger: el, start: 'top 88%', once: true,
-        onEnter: () => gsap.to(o, {
-          v: target, duration: 1.1, ease: 'power2.out',
-          onUpdate () { el.textContent = fmt(o.v); },
-          onComplete () { el.textContent = fmt(target); }
-        })
-      });
-    });
-
-    const fig = root.querySelector('#bleedFig');
-    if (fig) gsap.to(fig, {
-      yPercent: -7, ease: 'none',
-      scrollTrigger: { trigger: fig.closest('.bleed'), start: 'top bottom',
-                       end: 'bottom top', scrub: .6 }
-    });
+    root.querySelectorAll('[data-reveal]').forEach(e => revealIO.observe(e));
+    root.querySelectorAll('.mask').forEach(e => maskIO.observe(e));
+    root.querySelectorAll('[data-count]').forEach(e => { reserve(e); countIO.observe(e); });
   }
 
-  /* outside the tab system, so always present */
+  /* hero and footer sit outside the tab system */
   document.querySelectorAll('.hero, .cta').forEach(wire);
 
   document.addEventListener('panel:show', e => {
-    const p = document.getElementById('panel-' + (e.detail && e.detail.id));
-    if (!p) return;
-    wire(p);
-    ScrollTrigger.refresh();
+    wire(document.getElementById('panel-' + (e.detail && e.detail.id)));
   });
 
-  /* Same catch-up: the initial panel was shown before this listener existed. */
+  /* tabs.js activated a panel before this file ran, so catch up */
   document.querySelectorAll('.panel:not([hidden])').forEach(wire);
 
-  /* no tab layer: every panel is visible, so wire them all */
   if (!document.documentElement.classList.contains('js-tabs')) {
     document.querySelectorAll('.panel').forEach(wire);
   }
-
-  /* the cell field is drawn on a canvas that only sizes correctly once its
-     container has settled */
-  ScrollTrigger.addEventListener('refreshInit', () => window.dispatchEvent(new Event('resize')));
 })();
-

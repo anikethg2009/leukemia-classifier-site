@@ -177,7 +177,7 @@ a.btn,a.btn-ghost{ border-bottom-width:1px; }
 .bleed .h-section{ color:var(--paper); max-width:22ch;
                    font-size:clamp(1.9rem,3vw,2.7rem); }
 .bleed .subhead{ color:rgba(250,250,248,.62); }
-.bleed__fig{ margin-top:4rem; will-change:transform; }
+.bleed__fig{ margin-top:4rem; }
 .bleed__inner{ background:rgba(250,250,248,.04); border:1px solid rgba(250,250,248,.14);
                padding:2.5rem; }
 @media (min-width:1000px){
@@ -408,17 +408,31 @@ th,td{ text-align:left; vertical-align:top; }
   letter-spacing:-.02em; margin:0; white-space:nowrap; }
 .colophon{ font-size:.8125rem; color:var(--ink-note); max-width:58ch; margin:0; line-height:1.7; }
 
-/* ── load intro ──────────────────────────────────────────────────────────── */
-.intro{ position:fixed; inset:0; z-index:100; background:var(--paper);
-  display:flex; align-items:flex-end; justify-content:flex-end; padding:var(--pad); }
-.intro__n{ font-family:var(--mono); font-size:clamp(3rem,10vw,7rem); font-weight:500;
-  letter-spacing:-.04em; line-height:1; color:var(--ink); font-variant-numeric:tabular-nums; }
-
 /* ── reveal states: only once GSAP is confirmed up ───────────────────────── */
-html.js-anim [data-reveal]{ opacity:0; }
-html.js-anim .mask > span{ transform:translateY(105%); }
+/* Reveals and headline masks are CSS transitions now; an
+   IntersectionObserver only adds .is-in at the same thresholds GSAP used
+   (reveals 90% of viewport, masks 86%, counters 88%). */
+html.js-anim [data-reveal]{
+  opacity:0; transform:translateY(24px);
+  transition:opacity .65s var(--ease), transform .65s var(--ease);
+}
+html.js-anim [data-reveal].is-in{ opacity:1; transform:none; }
+
+html.js-anim .mask .w{
+  transform:translateY(105%);
+  transition:transform .8s cubic-bezier(.16,1,.3,1);
+}
+html.js-anim .mask.is-in .w{ transform:none; }
+
+/* the disclaimer never animates in, on any path */
 html.js-anim .disclaimer,
-html.js-anim .disclaimer [data-reveal]{ opacity:1 !important; transform:none !important; }
+html.js-anim .disclaimer [data-reveal]{
+  opacity:1 !important; transform:none !important; transition:none !important;
+}
+
+/* counters reserve the width of their final value, so counting up cannot
+   reflow the line and cannot contribute to CLS */
+.stat__n{ display:inline-block; text-align:left; font-variant-numeric:tabular-nums; }
 
 @keyframes rise{ from{ opacity:0; transform:translateY(9px); } to{ opacity:1; transform:none; } }
 .result.is-live .result__img{ animation:rise .32s var(--ease) both; }
@@ -430,7 +444,8 @@ html.js-anim .disclaimer [data-reveal]{ opacity:1 !important; transform:none !im
 
 @media (prefers-reduced-motion:reduce){
   html.js-anim [data-reveal],
-  html.js-anim .mask > span{ opacity:1 !important; transform:none !important; }
+  html.js-anim .mask .w{ opacity:1 !important; transform:none !important;
+                         transition:none !important; }
   *,*::before,*::after{ animation-duration:.001ms !important; transition-duration:.001ms !important; }
   .dropzone.is-dragover{ transform:none; }
   .bleed__fig{ transform:none !important; }
@@ -492,7 +507,13 @@ html.js-anim .disclaimer [data-reveal]{ opacity:1 !important; transform:none !im
   overflow:hidden; clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap; border:0;
 }
 
-.tabs{ border-top:1px solid var(--rule); background:var(--paper); }
+.tabs{ display:none; border-top:1px solid var(--rule); background:var(--paper); }
+.js-tabs .tabs{ display:block; }
+.js-tabs .panel{ display:none; }
+.js-tabs[data-tab="overview"] #panel-overview,
+.js-tabs[data-tab="results"]  #panel-results,
+.js-tabs[data-tab="method"]   #panel-method,
+.js-tabs[data-tab="demo"]     #panel-demo{ display:block; }
 .tablist{ display:flex; gap:0; margin:0 -1.1rem; }
 /* An explicit integer height keeps the bar from landing on a fractional
    pixel, which would shift every section below onto a different sub-pixel

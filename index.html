@@ -11,12 +11,27 @@
 <link rel="preload" href="fonts/schibsted-grotesk.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="style.css">
+<script>
+/* Runs before first paint so the active panel is the only one ever painted:
+   no flash of the full document collapsing, without needing an overlay to
+   hide it. With JS off this never runs, the class is never set, and every
+   panel stays visible. The map mirrors the panel grouping below; anything
+   not listed falls back to Overview and tabs.js corrects it after parse. */
+(function () {
+  var OWN = { overview:'overview', results:'results', method:'method', demo:'demo',
+              background:'overview', impact:'overview',
+              'sec-results':'results', tradeoff:'results',
+              validation:'method', 'sec-method':'method', limits:'method',
+              'sec-demo':'demo' };
+  var d = document.documentElement;
+  d.className += ' js-tabs';
+  d.setAttribute('data-tab', OWN[(location.hash || '').slice(1)] || 'overview');
+})();
+</script>
 </head>
 <body>
 
 <a class="skip" href="#main">Skip to content</a>
-
-<div class="intro" id="intro" aria-hidden="true"><span class="intro__n" id="introN">0</span></div>
 
 <main id="main">
 
@@ -41,7 +56,7 @@
 </header>
 
 <!-- ─────────────────────────────  tabs  ───────────────────────────── -->
-<div class="tabs" hidden id="tabs">
+<div class="tabs" id="tabs">
   <div class="wrap">
     <div class="tablist" role="tablist" aria-label="Sections of this project">
       <button type="button" class="tab" role="tab" id="tab-overview" aria-controls="panel-overview" aria-selected="false" tabindex="-1" data-tab="overview">Overview</button>
@@ -593,8 +608,6 @@
 
 </main>
 
-<script defer src="vendor/gsap/gsap.min.js"></script>
-<script defer src="vendor/gsap/ScrollTrigger.min.js"></script>
 <script defer src="tabs.js"></script>
 <script defer src="app.js"></script>
 </body>

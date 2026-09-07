@@ -52,6 +52,8 @@
     const panel = panelOf(id);
     const changed = current !== id;
     current = id;
+    /* keeps the CSS gate from the head script in step with the active tab */
+    document.documentElement.setAttribute('data-tab', id);
 
     if (opts.focusTab) tabOf(id).focus();
 
@@ -59,9 +61,6 @@
       /* Anything laid out while the panel was display:none has zero width, so
          let listeners re-measure now that it is on screen. */
       window.dispatchEvent(new Event('resize'));
-      if (window.ScrollTrigger && typeof ScrollTrigger.refresh === 'function') {
-        ScrollTrigger.refresh();
-      }
       panel.dispatchEvent(new CustomEvent('panel:show', {
         bubbles: true, detail: { id: id, first: !seen[id] }
       }));
@@ -161,9 +160,8 @@
   window.addEventListener('beforeprint', expandAll);
   window.addEventListener('afterprint', restore);
 
-  /* Enhance last, so the tablist never appears without working behaviour. */
-  document.documentElement.classList.add('js-tabs');
-  bar.hidden = false;
+  /* js-tabs and data-tab are already set by the head script, before first
+     paint; this only takes over the running state. */
   syncFromHash();
 
   /* Hovering or focusing the Demo tab warms the runtime only. The 47.7 MB
