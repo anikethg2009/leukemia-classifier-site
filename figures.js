@@ -162,10 +162,20 @@ export function mountCellField () {
     if (entries[0].isIntersecting) { play(); obs.disconnect(); }
   }, { threshold: 0.15 }).observe(cv);
 
+  /* A panel that is not on screen has zero width, so laying out while it is
+     hidden would size the canvas to nothing and blank the field -- and
+     mounting is one-shot, so it would never come back. Skip those, and catch
+     up when the panel is shown again. layout() rebuilds the dots without
+     touching progress, so re-running it redraws the same field. */
+  const relayout = () => { if (cv.parentElement.clientWidth) { layout(); draw(); } };
+
   let rAF;
   window.addEventListener('resize', () => {
     cancelAnimationFrame(rAF);
-    rAF = requestAnimationFrame(() => { layout(); draw(); });
+    rAF = requestAnimationFrame(relayout);
+  });
+  document.addEventListener('panel:show', e => {
+    if (e.detail && e.detail.id === 'results') requestAnimationFrame(relayout);
   });
 
   /* Legend doubles as the isolation control. */

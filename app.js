@@ -39,6 +39,12 @@ const THRESHOLD = 0.770;
 
   document.addEventListener('panel:show', e => mount(e.detail && e.detail.id));
 
+  /* Printing expands every panel, including ones the reader never opened,
+     whose figures were therefore never mounted. Loading the module is async,
+     so a figure may miss the first print preview and appear on the next; the
+     table beside each one carries the same numbers either way. */
+  addEventListener('beforeprint', () => { mount('results'); mount('method'); });
+
   /* tabs.js runs before this file and has already shown a panel, so its
      panel:show for the initial tab fired before the listener above existed.
      Catch up with whatever is on screen now. */

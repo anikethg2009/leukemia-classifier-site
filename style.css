@@ -552,5 +552,13 @@ html.js-anim .disclaimer [data-reveal]{
 
 @media print{
   .tabs{ display:none !important; }
+  /* Panels are gated on screen by `.js-tabs .panel{display:none}` keyed to
+     data-tab, so printing has to beat that rule, not only the hidden
+     attribute the gate used before the tabs were moved onto CSS. */
+  .js-tabs .panel,
   .panel[hidden]{ display:block !important; }
+  /* A panel the reader never opened never had its IntersectionObserver fire,
+     so without this every reveal in it would print at opacity 0. */
+  html.js-anim [data-reveal],
+  html.js-anim .mask .w{ opacity:1 !important; transform:none !important; }
 }
