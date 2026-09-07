@@ -18,17 +18,39 @@ export const ROC = {"fpr":[0.0,0.0,0.0037,0.0037,0.0074,0.0074,0.0111,0.0111,0.0
 
 /* Figures that sit on paper. Crimson means "leukemia is present in this
    cell" — solid where it was caught, hollow where it was not. */
-const C = {
-  detect: '#C81E5A',
-  accent: '#0C4A6E',
-  faint:  'rgba(17,17,17,.16)',
-  ink:    '#111111',
-  soft:   'rgba(17,17,17,.50)',
-  rule:   'rgba(17,17,17,.10)',
-  firm:   'rgba(17,17,17,.24)',
-  paper:  '#FAFAF8'
+/* Read the palette out of the stylesheet instead of keeping a second copy of
+   it here. These two did drift: --ink-note was raised from .50 to .60 to clear
+   AA, and this file kept its own .50 literal, so every figure label -- the
+   schematic's "not data" caption and the ROC operating-point description among
+   them -- stayed below contrast while the rest of the page was fixed.
+
+   Both a canvas fillStyle and an SVG fill accept whatever a custom property
+   holds, including rgba(), so no literal is needed at either site. The
+   fallbacks below apply only if a property is missing altogether, and each one
+   is the token's current value; if you change a token, change nothing here. */
+const cssVar = (name, fallback) => {
+  const v = getComputedStyle(document.documentElement)
+    .getPropertyValue(name).trim();
+  return v || fallback;
 };
-/* The ROC sits on the dark full-bleed band and needs its own values. */
+
+const C = {
+  detect: cssVar('--detect',    '#C81E5A'),
+  accent: cssVar('--accent',    '#0C4A6E'),
+  faint:  cssVar('--ink-faint', 'rgba(17,17,17,.16)'),
+  ink:    cssVar('--ink',       '#111111'),
+  soft:   cssVar('--ink-note',  'rgba(17,17,17,.60)'),
+  rule:   cssVar('--rule',      'rgba(17,17,17,.10)'),
+  firm:   cssVar('--rule-bold', 'rgba(17,17,17,.24)'),
+  paper:  cssVar('--paper',     '#FAFAF8')
+};
+
+/* The ROC sits on the dark full-bleed band, so its text is light-on-dark and
+   none of the tokens above apply. There is no token for these; they exist only
+   here. Measured against the band's #111111: the tick and axis labels are
+   6.00:1, the operating-point label 6.43:1, the AUC label 18.07:1. If a
+   band-local token set is ever added to style.css, point these at it the same
+   way C is pointed at the page tokens. */
 const CD = {
   curve: '#7FB6D4',
   mark:  '#FF5C8A',

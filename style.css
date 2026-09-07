@@ -35,7 +35,14 @@
 
   --ink-sub:    rgba(17,17,17,.88);
   --ink-soft:   rgba(17,17,17,.64);
-  --ink-note:   rgba(17,17,17,.50);
+  /* .60 not .50: --ink-note carries the figcaptions, table headers and demo
+     instructions, which is where most of the page's hedging lives, and at .50
+     it was the least legible text on the page. One alpha has to clear every
+     surface it lands on, because the same rules sit on paper, on --paper-2 and
+     on the translucent tints in the confusion matrix. Measured against all of
+     them: .50 gave 3.34-3.51, .58 still left the tinted cells at 4.26-4.45,
+     .60 gives 4.54-4.87, so AA everywhere with the darkest ground worst. */
+  --ink-note:   rgba(17,17,17,.60);
   --ink-faint:  rgba(17,17,17,.16);
   --rule:       rgba(17,17,17,.10);
   --rule-bold:  rgba(17,17,17,.24);
