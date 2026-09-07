@@ -41,6 +41,21 @@
   </div>
 </header>
 
+<!-- ─────────────────────────────  tabs  ───────────────────────────── -->
+<div class="tabs" hidden id="tabs">
+  <div class="wrap">
+    <div class="tablist" role="tablist" aria-label="Sections of this project">
+      <button type="button" class="tab" role="tab" id="tab-overview" aria-controls="panel-overview" aria-selected="false" tabindex="-1" data-tab="overview">Overview</button>
+      <button type="button" class="tab" role="tab" id="tab-results" aria-controls="panel-results" aria-selected="false" tabindex="-1" data-tab="results">Results</button>
+      <button type="button" class="tab" role="tab" id="tab-method" aria-controls="panel-method" aria-selected="false" tabindex="-1" data-tab="method">Method</button>
+      <button type="button" class="tab" role="tab" id="tab-demo" aria-controls="panel-demo" aria-selected="false" tabindex="-1" data-tab="demo">Demo</button>
+    </div>
+  </div>
+</div>
+<p class="sr-only" id="tabAnnounce" role="status" aria-live="polite"></p>
+
+<section class="panel" id="panel-overview" role="tabpanel" aria-labelledby="tab-overview" tabindex="-1">
+
 <!-- ─────────────────────────────  background  ───────────────────────────── -->
 <section class="statement" id="background">
   <div class="wrap">
@@ -95,8 +110,13 @@
   </div>
 </section>
 
+</section>
+
+
+<section class="panel" id="panel-results" role="tabpanel" aria-labelledby="tab-results" tabindex="-1">
+
 <!-- ─────────────────────────────  results  ───────────────────────────── -->
-<section class="section" id="results">
+<section class="section" id="sec-results">
   <div class="wrap">
     <p class="eyebrow" data-reveal>measured on held-out patients</p>
     <h2 class="h-section">
@@ -218,6 +238,38 @@
   </div>
 </section>
 
+<!-- ─────────────────────────────  full-bleed ROC  ───────────────────────────── -->
+<section class="bleed" id="tradeoff">
+  <div class="wrap">
+    <p class="eyebrow" data-reveal>the full trade-off</p>
+    <h2 class="h-section">
+      <span class="mask"><span>Every threshold</span></span>
+      <span class="mask"><span>is a choice about</span></span>
+      <span class="mask"><span>which errors you prefer.</span></span>
+    </h2>
+    <p class="subhead" data-reveal>Lowering it catches more leukemic cells and raises the false
+    alarms a reviewer has to wade through. Raising it does the reverse. 0.770 is one point on
+    that curve, and it was chosen on validation patients, never on these.</p>
+
+    <div class="bleed__fig" id="bleedFig">
+      <div class="bleed__inner">
+        <figure class="roc">
+          <div id="roc"></div>
+          <figcaption id="roc-caption">ROC on the subject-disjoint test set, AUC 0.858. The
+          marked point is the operating threshold of 0.770 — a false-positive rate of 0.045
+          for a true-positive rate of 0.778. Curve and operating point are both read off the
+          project's own plot, the curve traced to about one pixel.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+</section>
+
+
+<section class="panel" id="panel-method" role="tabpanel" aria-labelledby="tab-method" tabindex="-1">
+
 <!-- ─────────────────────────────  validation  ───────────────────────────── -->
 <section class="section" id="validation">
   <div class="wrap">
@@ -277,8 +329,137 @@
   </div>
 </section>
 
+<!-- ─────────────────────────────  method cards  ───────────────────────────── -->
+<section class="section" id="sec-method">
+  <div class="wrap">
+    <p class="eyebrow" data-reveal>method</p>
+    <h2 class="h-section">
+      <span class="mask"><span>How it was built,</span></span>
+      <span class="mask"><span>in nine decisions.</span></span>
+    </h2>
+
+    <div class="cards">
+      <div class="card" data-reveal><span class="card__i">01</span>
+        <h3 class="h-card">Data</h3>
+        <p>C-NMC 2019, the ISBI challenge set of single-cell images from paediatric B-lineage
+        ALL, colour-normalised and pre-segmented.</p></div>
+      <div class="card" data-reveal><span class="card__i">02</span>
+        <h3 class="h-card">Split</h3>
+        <p>By patient, 70/15/15, stratified by class, seed 42 — 51 training, 11 validation,
+        11 test. Subject-disjointness verified before training, not assumed.</p></div>
+      <div class="card" data-reveal><span class="card__i">03</span>
+        <h3 class="h-card">Architecture</h3>
+        <p>ResNet-50 pretrained on ImageNet, fine-tuned end to end.</p></div>
+      <div class="card" data-reveal><span class="card__i">04</span>
+        <h3 class="h-card">Input</h3>
+        <p>224&times;224&times;3 NHWC float32, Caffe-style: RGB to BGR, then per-channel means
+        <span class="mono">[103.939, 116.779, 123.68]</span> subtracted. No 0–1 rescale.</p></div>
+      <div class="card" data-reveal><span class="card__i">05</span>
+        <h3 class="h-card">Loss</h3>
+        <p>Focal loss weighted toward the leukemic class, so the class imbalance could not
+        quietly optimise the model into ignoring positives.</p></div>
+      <div class="card" data-reveal><span class="card__i">06</span>
+        <h3 class="h-card">Output</h3>
+        <p>A single sigmoid giving P(normal), since class index 1 is <i>normal</i>. Everything
+        here uses P(leukemic) = 1 &minus; that.</p></div>
+      <div class="card" data-reveal><span class="card__i">07</span>
+        <h3 class="h-card">Threshold</h3>
+        <p>0.770, chosen on a stratified subset of the <i>validation</i> patients. The test set
+        was scored once, at that threshold, and never used to pick it.</p></div>
+      <div class="card" data-reveal><span class="card__i">08</span>
+        <h3 class="h-card">Evaluation</h3>
+        <p>1,882 cells from the 11 test patients: 1,094 leukemic, 788 normal.</p></div>
+      <div class="card" data-reveal><span class="card__i">09</span>
+        <h3 class="h-card">Demo weights</h3>
+        <p>The browser copy stores weights at float16 — half the bytes, scores differing by up
+        to about 0.002. Every metric here came from the float32 export.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────  scope  ───────────────────────────── -->
+<section class="section" id="limits">
+  <div class="wrap">
+    <p class="eyebrow" data-reveal>scope</p>
+    <h2 class="h-section">
+      <span class="mask"><span>Where this applies,</span></span>
+      <span class="mask"><span>and where it doesn't.</span></span>
+    </h2>
+    <p class="subhead" data-reveal>Everything below is a boundary on what has actually been
+    measured. It is here so the results above can be read for what they are.</p>
+
+    <div class="faq" data-reveal>
+      <details open><summary><span class="faq__i">01</span>
+        <span class="faq__q">Has it been validated clinically?</span>
+        <span class="faq__sign" aria-hidden="true"></span></summary>
+        <div class="faq__wrap"><div class="faq__inner">
+        <p>No. No prospective study, no reader study, no hospital, no regulatory review of any
+        kind. Nothing here establishes that it helps a real pathologist on a real case.</p>
+        </div></div></details>
+
+      <details open><summary><span class="faq__i">02</span>
+        <span class="faq__q">How many datasets has it seen?</span>
+        <span class="faq__sign" aria-hidden="true"></span></summary>
+        <div class="faq__wrap"><div class="faq__inner">
+        <p>One — C-NMC 2019. Performance on images from a different hospital, scanner, stain
+        protocol, or segmentation pipeline is unknown, and the split-by-patient result above is a
+        direct reminder of how much acquisition can matter.</p>
+        </div></div></details>
+
+      <details open><summary><span class="faq__i">03</span>
+        <span class="faq__q">Can it find cells in a whole slide?</span>
+        <span class="faq__sign" aria-hidden="true"></span></summary>
+        <div class="faq__wrap"><div class="faq__inner">
+        <p>No. The input has to be pre-segmented — individual cells, already cut out and
+        centred. Finding and isolating the cells is a separate problem this project does not
+        touch.</p>
+        </div></div></details>
+
+      <details open><summary><span class="faq__i">04</span>
+        <span class="faq__q">What about stain variation?</span>
+        <span class="faq__sign" aria-hidden="true"></span></summary>
+        <div class="faq__wrap"><div class="faq__inner">
+        <p>The images are colour-normalised; C-NMC ships that way. Raw slide images with their
+        real stain variation are a different distribution.</p>
+        </div></div></details>
+
+      <details open><summary><span class="faq__i">05</span>
+        <span class="faq__q">Which patients does it apply to?</span>
+        <span class="faq__sign" aria-hidden="true"></span></summary>
+        <div class="faq__wrap"><div class="faq__inner">
+        <p>Paediatric B-lineage only. The dataset is childhood B-cell ALL. T-lineage disease,
+        adult patients, and other malignancies are outside anything that was measured.</p>
+        </div></div></details>
+
+      <details open><summary><span class="faq__i">06</span>
+        <span class="faq__q">Can it say "this is not a cell"?</span>
+        <span class="faq__sign" aria-hidden="true"></span></summary>
+        <div class="faq__wrap"><div class="faq__inner">
+        <p>No. The two classes are the only two options. It cannot say "this is a neutrophil",
+        "this is a smudge cell", or "this image is not a cell". It sorts everything onto a
+        leukemic/normal axis, including things that belong on neither.</p>
+        </div></div></details>
+
+      <details open><summary><span class="faq__i">07</span>
+        <span class="faq__q">What does a cell it doesn't flag mean?</span>
+        <span class="faq__sign" aria-hidden="true"></span></summary>
+        <div class="faq__wrap"><div class="faq__inner">
+        <p>It means the model did not rank that cell highly — nothing more. At the published
+        threshold it flagged 851 of 1,094 leukemic cells, so an unflagged cell has not been
+        cleared of anything. This is a ranking aid for a reviewer who reads every cell, and it
+        only works as one.</p>
+        </div></div></details>
+    </div>
+  </div>
+</section>
+
+</section>
+
+
+<section class="panel" id="panel-demo" role="tabpanel" aria-labelledby="tab-demo" tabindex="-1">
+
 <!-- ─────────────────────────────  demo  ───────────────────────────── -->
-<section class="section" id="demo">
+<section class="section" id="sec-demo">
   <div class="wrap">
     <p class="eyebrow" data-reveal>try it</p>
     <h2 class="h-section">
@@ -374,156 +555,8 @@
   </div>
 </section>
 
-<!-- ─────────────────────────────  method cards  ───────────────────────────── -->
-<section class="section" id="method">
-  <div class="wrap">
-    <p class="eyebrow" data-reveal>method</p>
-    <h2 class="h-section">
-      <span class="mask"><span>How it was built,</span></span>
-      <span class="mask"><span>in nine decisions.</span></span>
-    </h2>
-
-    <div class="cards">
-      <div class="card" data-reveal><span class="card__i">01</span>
-        <h3 class="h-card">Data</h3>
-        <p>C-NMC 2019, the ISBI challenge set of single-cell images from paediatric B-lineage
-        ALL, colour-normalised and pre-segmented.</p></div>
-      <div class="card" data-reveal><span class="card__i">02</span>
-        <h3 class="h-card">Split</h3>
-        <p>By patient, 70/15/15, stratified by class, seed 42 — 51 training, 11 validation,
-        11 test. Subject-disjointness verified before training, not assumed.</p></div>
-      <div class="card" data-reveal><span class="card__i">03</span>
-        <h3 class="h-card">Architecture</h3>
-        <p>ResNet-50 pretrained on ImageNet, fine-tuned end to end.</p></div>
-      <div class="card" data-reveal><span class="card__i">04</span>
-        <h3 class="h-card">Input</h3>
-        <p>224&times;224&times;3 NHWC float32, Caffe-style: RGB to BGR, then per-channel means
-        <span class="mono">[103.939, 116.779, 123.68]</span> subtracted. No 0–1 rescale.</p></div>
-      <div class="card" data-reveal><span class="card__i">05</span>
-        <h3 class="h-card">Loss</h3>
-        <p>Focal loss weighted toward the leukemic class, so the class imbalance could not
-        quietly optimise the model into ignoring positives.</p></div>
-      <div class="card" data-reveal><span class="card__i">06</span>
-        <h3 class="h-card">Output</h3>
-        <p>A single sigmoid giving P(normal), since class index 1 is <i>normal</i>. Everything
-        here uses P(leukemic) = 1 &minus; that.</p></div>
-      <div class="card" data-reveal><span class="card__i">07</span>
-        <h3 class="h-card">Threshold</h3>
-        <p>0.770, chosen on a stratified subset of the <i>validation</i> patients. The test set
-        was scored once, at that threshold, and never used to pick it.</p></div>
-      <div class="card" data-reveal><span class="card__i">08</span>
-        <h3 class="h-card">Evaluation</h3>
-        <p>1,882 cells from the 11 test patients: 1,094 leukemic, 788 normal.</p></div>
-      <div class="card" data-reveal><span class="card__i">09</span>
-        <h3 class="h-card">Demo weights</h3>
-        <p>The browser copy stores weights at float16 — half the bytes, scores differing by up
-        to about 0.002. Every metric here came from the float32 export.</p></div>
-    </div>
-  </div>
 </section>
 
-<!-- ─────────────────────────────  full-bleed ROC  ───────────────────────────── -->
-<section class="bleed" id="tradeoff">
-  <div class="wrap">
-    <p class="eyebrow" data-reveal>the full trade-off</p>
-    <h2 class="h-section">
-      <span class="mask"><span>Every threshold</span></span>
-      <span class="mask"><span>is a choice about</span></span>
-      <span class="mask"><span>which errors you prefer.</span></span>
-    </h2>
-    <p class="subhead" data-reveal>Lowering it catches more leukemic cells and raises the false
-    alarms a reviewer has to wade through. Raising it does the reverse. 0.770 is one point on
-    that curve, and it was chosen on validation patients, never on these.</p>
-
-    <div class="bleed__fig" id="bleedFig">
-      <div class="bleed__inner">
-        <figure class="roc">
-          <div id="roc"></div>
-          <figcaption id="roc-caption">ROC on the subject-disjoint test set, AUC 0.858. The
-          marked point is the operating threshold of 0.770 — a false-positive rate of 0.045
-          for a true-positive rate of 0.778. Curve and operating point are both read off the
-          project's own plot, the curve traced to about one pixel.</figcaption>
-        </figure>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ─────────────────────────────  scope  ───────────────────────────── -->
-<section class="section" id="limits">
-  <div class="wrap">
-    <p class="eyebrow" data-reveal>scope</p>
-    <h2 class="h-section">
-      <span class="mask"><span>Where this applies,</span></span>
-      <span class="mask"><span>and where it doesn't.</span></span>
-    </h2>
-    <p class="subhead" data-reveal>Everything below is a boundary on what has actually been
-    measured. It is here so the results above can be read for what they are.</p>
-
-    <div class="faq" data-reveal>
-      <details open><summary><span class="faq__i">01</span>
-        <span class="faq__q">Has it been validated clinically?</span>
-        <span class="faq__sign" aria-hidden="true"></span></summary>
-        <div class="faq__wrap"><div class="faq__inner">
-        <p>No. No prospective study, no reader study, no hospital, no regulatory review of any
-        kind. Nothing here establishes that it helps a real pathologist on a real case.</p>
-        </div></div></details>
-
-      <details open><summary><span class="faq__i">02</span>
-        <span class="faq__q">How many datasets has it seen?</span>
-        <span class="faq__sign" aria-hidden="true"></span></summary>
-        <div class="faq__wrap"><div class="faq__inner">
-        <p>One — C-NMC 2019. Performance on images from a different hospital, scanner, stain
-        protocol, or segmentation pipeline is unknown, and the split-by-patient result above is a
-        direct reminder of how much acquisition can matter.</p>
-        </div></div></details>
-
-      <details open><summary><span class="faq__i">03</span>
-        <span class="faq__q">Can it find cells in a whole slide?</span>
-        <span class="faq__sign" aria-hidden="true"></span></summary>
-        <div class="faq__wrap"><div class="faq__inner">
-        <p>No. The input has to be pre-segmented — individual cells, already cut out and
-        centred. Finding and isolating the cells is a separate problem this project does not
-        touch.</p>
-        </div></div></details>
-
-      <details open><summary><span class="faq__i">04</span>
-        <span class="faq__q">What about stain variation?</span>
-        <span class="faq__sign" aria-hidden="true"></span></summary>
-        <div class="faq__wrap"><div class="faq__inner">
-        <p>The images are colour-normalised; C-NMC ships that way. Raw slide images with their
-        real stain variation are a different distribution.</p>
-        </div></div></details>
-
-      <details open><summary><span class="faq__i">05</span>
-        <span class="faq__q">Which patients does it apply to?</span>
-        <span class="faq__sign" aria-hidden="true"></span></summary>
-        <div class="faq__wrap"><div class="faq__inner">
-        <p>Paediatric B-lineage only. The dataset is childhood B-cell ALL. T-lineage disease,
-        adult patients, and other malignancies are outside anything that was measured.</p>
-        </div></div></details>
-
-      <details open><summary><span class="faq__i">06</span>
-        <span class="faq__q">Can it say "this is not a cell"?</span>
-        <span class="faq__sign" aria-hidden="true"></span></summary>
-        <div class="faq__wrap"><div class="faq__inner">
-        <p>No. The two classes are the only two options. It cannot say "this is a neutrophil",
-        "this is a smudge cell", or "this image is not a cell". It sorts everything onto a
-        leukemic/normal axis, including things that belong on neither.</p>
-        </div></div></details>
-
-      <details open><summary><span class="faq__i">07</span>
-        <span class="faq__q">What does a cell it doesn't flag mean?</span>
-        <span class="faq__sign" aria-hidden="true"></span></summary>
-        <div class="faq__wrap"><div class="faq__inner">
-        <p>It means the model did not rank that cell highly — nothing more. At the published
-        threshold it flagged 851 of 1,094 leukemic cells, so an unflagged cell has not been
-        cleared of anything. This is a ranking aid for a reviewer who reads every cell, and it
-        only works as one.</p>
-        </div></div></details>
-    </div>
-  </div>
-</section>
 
 <!-- ─────────────────────────────  closing  ───────────────────────────── -->
 <footer class="cta" id="credits">
@@ -563,6 +596,7 @@
 
 <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+<script defer src="tabs.js"></script>
 <script defer src="app.js"></script>
 </body>
 </html>
