@@ -39,7 +39,7 @@ git push -u origin tabs-and-perf     # optional, only to keep the branch history
 git push --mirror origin     # ← never run this here
 ```
 
-All 16 commit messages were rewritten to strip `Claude-Session:` session-ID
+Fourteen commit messages were rewritten to strip `Claude-Session:` session-ID
 lines. `git filter-branch` preserved the originals under `refs/original/`, and
 those refs were deleted afterwards — but **`--mirror` pushes every ref under
 `refs/*`**, not just branches, so if any backup ref is ever recreated (running
