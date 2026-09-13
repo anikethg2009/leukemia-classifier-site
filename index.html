@@ -7,15 +7,19 @@
 <meta name="description" content="A neural network that ranks single white-blood-cell images by resemblance to leukemic lymphoblasts. Precision 0.959, AUC 0.858 on 11 patients held out of training.">
 
 <!-- ══════════════════════════════════════════════════════════════════════════
-     SITE URL — the deploy origin, written in this file ONLY on the three
-     lines tagged [SITE URL] below.
+     SITE URL — the deploy origin. It appears four times in this file: the
+     three lines tagged [SITE URL] below, plus the "url" field inside the
+     JSON-LD block, which cannot carry a tag because JSON forbids comments.
 
      Placeholder is the GitHub Pages project URL. Moving to a custom domain
-     means editing those three lines here, plus one line in each of:
+     means editing all four of those here, plus one line in each of:
          robots.txt    the `Sitemap:` line
          sitemap.xml   the `<loc>` line
-     Keep the trailing slash on all five; a canonical that disagrees with the
-     served URL by a slash is treated as a different page.
+     Keep the trailing slash on the four that end at the site root: canonical,
+     og:url, the JSON-LD "url", and the <loc> in sitemap.xml. A canonical that
+     disagrees with the served URL by a slash is treated as a different page.
+     The other two end in a filename and take no slash: og:image above, and
+     the `Sitemap:` line in robots.txt.
 
      These cannot be collapsed into one runtime constant: Open Graph and
      Twitter scrapers do not execute JavaScript, so the absolute URL has to be
@@ -29,11 +33,13 @@
 <meta property="og:description" content="A neural network that ranks single white-blood-cell images by resemblance to leukemic lymphoblasts. Precision 0.959, AUC 0.858 on 11 patients held out of training.">
 <meta property="og:url" content="https://anikethg2009.github.io/leukemia-classifier-site/"><!-- [SITE URL] -->
 <meta property="og:locale" content="en_US">
-<!-- og:image intentionally absent — the preview image is still being chosen.
-     Adding one means an og:image (absolute URL), og:image:width/height and
-     og:image:alt here, and switching twitter:card to summary_large_image. -->
+<meta property="og:image" content="https://anikethg2009.github.io/leukemia-classifier-site/og-card.png"><!-- [SITE URL] -->
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="A typographic card on off-white paper: a small crimson dot, the title &quot;Cell-level triage for acute lymphoblastic leukemia&quot;, and a line reading 0.959 precision, 0.858 AUC, 1,882 cells.">
 
-<meta name="twitter:card" content="summary">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Cell-level triage for acute lymphoblastic leukemia">
 <meta name="twitter:description" content="A neural network that ranks single white-blood-cell images by resemblance to leukemic lymphoblasts. Precision 0.959, AUC 0.858 on 11 patients held out of training.">
 
@@ -50,10 +56,7 @@
   "isAccessibleForFree": true,
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
   "inLanguage": "en",
-  "creator": [
-    { "@type": "Person", "name": "Aniketh G." },
-    { "@type": "Person", "name": "Eugene Choi" }
-  ],
+  "creator": { "@type": "Person", "name": "Aniketh G." },
   "disambiguatingDescription": "A student research project, not a medical device. It ranks pre-segmented single-cell images by visual similarity to leukemic lymphoblasts for a qualified reviewer; it does not detect or diagnose leukemia and must not inform a clinical decision."
 }
 </script>
