@@ -1,0 +1,13 @@
+# Everything on this site is public and meant to be indexed.
+User-agent: *
+Allow: /
+
+# Large binaries that no search index has a use for. Neither is needed to
+# render the page: the ONNX runtime and the weights load only after the
+# visitor ticks the acknowledgement and clicks Load model, so a crawler that
+# never fetches them still sees the complete document.
+Disallow: /models/
+Disallow: /vendor/
+
+# Change this line too if the site moves to a custom domain.
+Sitemap: https://anikethg2009.github.io/leukemia-classifier-site/sitemap.xml

@@ -3,8 +3,60 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cell-level triage for acute lymphoblastic leukemia screening</title>
-<meta name="description" content="A convolutional neural network that ranks single white blood cell images by how closely they resemble leukemic lymphoblasts, so a reviewer reaches the most suspicious cells first. Precision 0.959, AUC 0.858 on 1,882 cells from patients held out of training. Runs entirely in the browser.">
+<title>Cell-level triage for acute lymphoblastic leukemia</title>
+<meta name="description" content="A neural network that ranks single white-blood-cell images by resemblance to leukemic lymphoblasts. Precision 0.959, AUC 0.858 on 11 patients held out of training.">
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     SITE URL — the deploy origin, written in this file ONLY on the three
+     lines tagged [SITE URL] below.
+
+     Placeholder is the GitHub Pages project URL. Moving to a custom domain
+     means editing those three lines here, plus one line in each of:
+         robots.txt    the `Sitemap:` line
+         sitemap.xml   the `<loc>` line
+     Keep the trailing slash on all five; a canonical that disagrees with the
+     served URL by a slash is treated as a different page.
+
+     These cannot be collapsed into one runtime constant: Open Graph and
+     Twitter scrapers do not execute JavaScript, so the absolute URL has to be
+     literal in the markup by the time the page is served.
+═══════════════════════════════════════════════════════════════════════════ -->
+<link rel="canonical" href="https://anikethg2009.github.io/leukemia-classifier-site/"><!-- [SITE URL] -->
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Cell-level ALL triage">
+<meta property="og:title" content="Cell-level triage for acute lymphoblastic leukemia">
+<meta property="og:description" content="A neural network that ranks single white-blood-cell images by resemblance to leukemic lymphoblasts. Precision 0.959, AUC 0.858 on 11 patients held out of training.">
+<meta property="og:url" content="https://anikethg2009.github.io/leukemia-classifier-site/"><!-- [SITE URL] -->
+<meta property="og:locale" content="en_US">
+<!-- og:image intentionally absent — the preview image is still being chosen.
+     Adding one means an og:image (absolute URL), og:image:width/height and
+     og:image:alt here, and switching twitter:card to summary_large_image. -->
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Cell-level triage for acute lymphoblastic leukemia">
+<meta name="twitter:description" content="A neural network that ranks single white-blood-cell images by resemblance to leukemic lymphoblasts. Precision 0.959, AUC 0.858 on 11 patients held out of training.">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Cell-level triage for acute lymphoblastic leukemia",
+  "url": "https://anikethg2009.github.io/leukemia-classifier-site/",
+  "description": "A neural network that ranks single white-blood-cell images by resemblance to leukemic lymphoblasts. Precision 0.959, AUC 0.858 on 11 patients held out of training.",
+  "applicationCategory": "ResearchApplication",
+  "browserRequirements": "Requires JavaScript and WebAssembly for the demo; the rest of the page needs neither.",
+  "operatingSystem": "Any",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "inLanguage": "en",
+  "creator": [
+    { "@type": "Person", "name": "Aniketh G." },
+    { "@type": "Person", "name": "Eugene Choi" }
+  ],
+  "disambiguatingDescription": "A student research project, not a medical device. It ranks pre-segmented single-cell images by visual similarity to leukemic lymphoblasts for a qualified reviewer; it does not detect or diagnose leukemia and must not inform a clinical decision."
+}
+</script>
 <meta name="color-scheme" content="light">
 <meta name="theme-color" content="#FAFAF8">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23FAFAF8'/%3E%3Ccircle cx='16' cy='16' r='9' fill='%23C81E5A' opacity='.22'/%3E%3Ccircle cx='14' cy='14' r='5.5' fill='%23C81E5A'/%3E%3C/svg%3E">
