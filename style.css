@@ -24,8 +24,8 @@
    Ink is a single colour at varying alpha. Two hues:
      --accent  deep clinical blue, used sparingly for structure and state
      --detect  crimson, meaning "leukemia is present in this cell"
-   Reveal states live under html.js-anim, which JS adds only once GSAP is up,
-   so a blocked CDN degrades to a fully visible page.
+   Reveal states live under html.js-anim, which app.js adds when the motion
+   code initialises, so if that script never runs the page is fully visible.
    ========================================================================= */
 
 :root{
@@ -121,7 +121,7 @@ div.prose{ margin-top:3rem; }
 }
 .prose .mono,.card .mono{ font-size:.9em; }
 
-/* headline masks — GSAP raises the inner span; without JS they simply sit still */
+/* headline masks — a CSS transition raises the inner span; without JS they simply sit still */
 .mask{ display:block; overflow:hidden; padding-bottom:.04em; }
 .mask > span{ display:block; }
 .mask .w{ display:inline-block; will-change:transform; }
@@ -415,10 +415,10 @@ th,td{ text-align:left; vertical-align:top; }
   letter-spacing:-.02em; margin:0; white-space:nowrap; }
 .colophon{ font-size:.8125rem; color:var(--ink-note); max-width:58ch; margin:0; line-height:1.7; }
 
-/* ── reveal states: only once GSAP is confirmed up ───────────────────────── */
-/* Reveals and headline masks are CSS transitions now; an
-   IntersectionObserver only adds .is-in at the same thresholds GSAP used
-   (reveals 90% of viewport, masks 86%, counters 88%). */
+/* ── reveal states: only once app.js has added .js-anim ──────────────────── */
+/* Reveals and headline masks are CSS transitions; an IntersectionObserver
+   adds .is-in at fixed thresholds (reveals 90% of viewport, masks 86%,
+   counters 88%). See the motion section in app.js for where they came from. */
 html.js-anim [data-reveal]{
   opacity:0; transform:translateY(24px);
   transition:opacity .65s var(--ease), transform .65s var(--ease);
