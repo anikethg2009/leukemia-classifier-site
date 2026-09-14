@@ -484,6 +484,11 @@ html.js-anim .disclaimer [data-reveal]{
   .field__canvas-wrap,#splitfig{ padding:1.2rem; }
   .faq__inner p{ padding-left:0; }
   .credits{ grid-template-columns:1fr; gap:1.2rem; }
+  /* nowrap gives the byline a min-content width the 1fr track cannot go
+     below, which pushes the whole credits grid — colophon included — past
+     the viewport on phones. The &nbsp; inside each name still keep first
+     and last together, so this breaks at the separator and nowhere else. */
+  .credits__names{ white-space:normal; }
 }
 @media (max-width:520px){
   /* editorial headlines re-wrap at this width; ease them down so the
