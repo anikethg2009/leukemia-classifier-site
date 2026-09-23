@@ -28,6 +28,10 @@ subject-disjoint test set: 1,882 cells from held-out patients, threshold
 | Score shown | **0.813** |
 | Verdict shown | **Flagged for review** |
 | Console errors | 0 |
+| Python reference | P(leukemic) **0.8124375**, onnxruntime CPU, default graph optimisation |
+| Tolerance | browser raw score within **±0.0005** of the Python reference |
+
+The weights are float16, so the fourth decimal depends on the runtime's kernels: Python alone gives 0.8124375 or 0.8126213 depending on graph optimisation, and the browser gives 0.8126997.
 
 The score is only meaningful against this exact file. Check the hash first --
 a regenerated or re-encoded fixture will give a different number, and that
@@ -49,7 +53,9 @@ Serve the repo root and open the page. Then, in the Demo tab:
 4. Read the score.
 
 Expect **0.813**, verdict **Flagged for review**, and the "a score, not a
-finding" caveat rendered next to it.
+finding" caveat rendered next to it. The displayed score has three decimals;
+to check the tolerance, compare the raw output (P(leukemic) = 1 - P(normal))
+against the Python reference above.
 
 ## When it fails
 
