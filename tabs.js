@@ -79,10 +79,21 @@
      to an element that does not exist; the back button still moves between
      tabs because each activation adds an entry. */
   function syncFromHash (opts) {
+    opts = opts || {};
     const raw = (location.hash || '').replace(/^#/, '');
     const owner = ownerOf(raw);
-    show(owner || IDS[0], opts || {});
+    show(owner || IDS[0], opts);
     if (owner && IDS.indexOf(raw) === -1) scrollTo(raw, false);
+    /* A bare tab hash (#demo) names no element, so the browser has nothing to
+       scroll to and a deep link would open on the hero with the panel out of
+       sight. On arrival, take the visitor to the panel they asked for. */
+    else if (opts.arrival && owner && raw) scrollTo(firstSection(owner), false);
+  }
+
+  /* The heading a panel opens with: where a link to the bare tab should land. */
+  function firstSection (id) {
+    const s = panelOf(id) && panelOf(id).querySelector('section[id]');
+    return s ? s.id : null;
   }
 
   /* Scrolling has to happen after the panel is displayed and laid out, or the
@@ -94,6 +105,7 @@
     requestAnimationFrame(() => {
       const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+      pin(el);
       if (focusIt) {
         /* Following an anchor should land focus on the thing you asked for,
            not on the panel that happens to contain it. */
@@ -101,6 +113,30 @@
         el.focus({ preventScroll: true });
       }
     });
+  }
+
+  /* The figures in a panel mount asynchronously after it is shown (figures.js
+     is imported on demand), and each one grows the panel above anything that
+     follows it: #tradeoff and #sec-method both landed hundreds of pixels off
+     their heading. Hold the target in place while the panel settles, and let
+     go the moment the visitor scrolls for themselves. */
+  function pin (el) {
+    const panel = el.closest('.panel');
+    if (!panel || typeof ResizeObserver !== 'function') return;
+    let done = false, first = true;
+    const EV = ['wheel', 'touchstart', 'keydown', 'mousedown'];
+    const stop = () => {
+      if (done) return;
+      done = true; ro.disconnect();
+      EV.forEach(t => window.removeEventListener(t, stop));
+    };
+    const ro = new ResizeObserver(() => {
+      if (first) { first = false; return; }   /* the observe() call itself */
+      if (!done) el.scrollIntoView({ behavior: 'auto', block: 'start' });
+    });
+    ro.observe(panel);
+    EV.forEach(t => window.addEventListener(t, stop, { passive: true }));
+    setTimeout(stop, 1500);
   }
 
   /* Tab activation focuses the panel. Anchor navigation focuses the target
@@ -134,7 +170,11 @@
     tabOf(IDS[n]).focus();
   });
 
-  /* In-page links keep working: activate the owning tab, then scroll. */
+  /* In-page links keep working: activate the owning tab, then scroll.
+     A link to a bare tab id (#demo) used to take the tab-button path, which
+     scrolls to the top of the page — so from the hero it switched the panel
+     below the fold and left the visitor where they were. Content links always
+     scroll to a heading instead: the named one, or the panel's first. */
   document.addEventListener('click', e => {
     const a = e.target.closest('a[href^="#"]');
     if (!a || a.closest('[role="tablist"]')) return;
@@ -143,7 +183,7 @@
     const owner = ownerOf(raw);
     if (!owner) return;                       /* #main and friends: leave alone */
     e.preventDefault();
-    go(owner, IDS.indexOf(raw) === -1 ? raw : null);
+    go(owner, IDS.indexOf(raw) === -1 ? raw : firstSection(owner));
   });
 
   window.addEventListener('popstate', () => syncFromHash());
@@ -162,7 +202,7 @@
 
   /* js-tabs and data-tab are already set by the head script, before first
      paint; this only takes over the running state. */
-  syncFromHash();
+  syncFromHash({ arrival: true });
 
   /* Hovering or focusing the Demo tab warms the runtime only. The 47.7 MB
      of weights are never touched here; they wait for the gate. */

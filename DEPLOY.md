@@ -184,7 +184,7 @@ curl -sSL -o /dev/null -w 'og-card %{http_code} %{content_type} %{size_download}
 curl -sS "$SITE/" | grep -E '<title>|rel="canonical"|og:url|og:image'
 ```
 
-- `og-card.png` must be **200**, `image/png`, **48744** bytes. A link preview
+- `og-card.png` must be **200**, `image/png`, **55376** bytes. A link preview
   that 404s on its image degrades to a bare text card.
 - The `canonical` and `og:url` values must match the URL you actually browsed,
   **including the trailing slash**. A canonical that disagrees by a slash is

@@ -62,6 +62,56 @@ const THRESHOLD = 0.770;
 })();
 
 /* ══════════════════════════════════════════════════════════════════════════
+   The compact cell field in the hero. Same order as the full field in
+   figures.js — leukemic cells caught first, missed last, so the 243 misses
+   sit as one rose block along the lower edge — but small, solid marks, no
+   labels and no animation: it is there to be seen on the first screen, not
+   explored. The counts are the ones in the specimen label and the matrix.
+   ══════════════════════════════════════════════════════════════════════════ */
+(function miniField () {
+  const cv = document.getElementById('minifield');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const N = { tp: 851, fn: 243, fp: 36, tn: 752 };
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+  function draw () {
+    const W = cv.parentElement.clientWidth;
+    if (!W) return;
+    const cols = Math.max(48, Math.min(96, Math.floor(W / 5.5)));
+    const p = W / cols, r = Math.max(1.1, p * 0.34), gap = Math.round(p * 1.6);
+    const rowsA = Math.ceil((N.tp + N.fn) / cols), rowsB = Math.ceil((N.fp + N.tn) / cols);
+    const H = Math.ceil((rowsA + rowsB) * p + gap);
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    cv.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+
+    const col = { tp: css('--violet'), fn: css('--rose'), fp: css('--steel'), tn: css('--ink-faint') };
+    const dot = (i, y0, g) => {
+      const x = (i % cols) * p + p / 2, y = y0 + Math.floor(i / cols) * p + p / 2;
+      ctx.beginPath();
+      if (g === 'fp') {
+        ctx.arc(x, y, Math.max(0.9, r - 0.35), 0, 6.2832);
+        ctx.lineWidth = Math.max(0.9, r * 0.55); ctx.strokeStyle = col.fp; ctx.stroke();
+      } else {
+        ctx.arc(x, y, r, 0, 6.2832); ctx.fillStyle = col[g]; ctx.fill();
+      }
+    };
+    for (let i = 0; i < N.tp + N.fn; i++) dot(i, 0, i < N.tp ? 'tp' : 'fn');
+    const yB = rowsA * p + gap;
+    for (let j = 0; j < N.fp + N.tn; j++) dot(j, yB, j < N.fp ? 'fp' : 'tn');
+  }
+
+  draw();
+  /* the web fonts can move the column width once they land */
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw);
+  let rAF;
+  window.addEventListener('resize', () => { cancelAnimationFrame(rAF); rAF = requestAnimationFrame(draw); });
+})();
+
+/* ══════════════════════════════════════════════════════════════════════════
    4. The demo — the model runs here, in this tab, on your machine
    ══════════════════════════════════════════════════════════════════════════ */
 (function demo () {

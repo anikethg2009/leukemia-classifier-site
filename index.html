@@ -37,7 +37,7 @@
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="A typographic card on off-white paper: a small crimson dot, the title &quot;Cell-level triage for acute lymphoblastic leukemia&quot;, and a line reading 0.959 precision, 0.858 AUC, 1,882 cells.">
+<meta property="og:image:alt" content="A typographic card on pale pink paper: a small violet dot, the title &quot;Cell-level triage for acute lymphoblastic leukemia&quot; in dark violet ink, and a line reading 0.959 precision, 0.858 AUC, 1,882 cells.">
 
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Cell-level triage for leukemia – Astraea Health">
@@ -61,10 +61,10 @@
 }
 </script>
 <meta name="color-scheme" content="light">
-<meta name="theme-color" content="#FAFAF8">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23FAFAF8'/%3E%3Ccircle cx='16' cy='16' r='9' fill='%23C81E5A' opacity='.22'/%3E%3Ccircle cx='14' cy='14' r='5.5' fill='%23C81E5A'/%3E%3C/svg%3E">
-<link rel="preload" href="fonts/schibsted-grotesk.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
+<meta name="theme-color" content="#F7F2F4">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23F7F2F4'/%3E%3Ccircle cx='16' cy='16' r='9' fill='%2356287E' opacity='.22'/%3E%3Ccircle cx='14' cy='14' r='5.5' fill='%2356287E'/%3E%3C/svg%3E">
+<link rel="preload" href="fonts/newsreader.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/ibm-plex-mono-500.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="style.css">
 <script>
 /* Runs before first paint so the active panel is the only one ever painted:
@@ -92,20 +92,50 @@
 
 <!-- ─────────────────────────────  hero  ───────────────────────────── -->
 <header class="hero">
-  <div class="wrap">
-    <p class="eyebrow" data-reveal>cell-level triage for leukemia screening</p>
-    <h1 class="h-hero">
-      <span class="mask"><span>The cells that</span></span>
-      <span class="mask"><span>matter most,</span></span>
-      <span class="mask"><span>seen first.</span></span>
-    </h1>
-    <p class="subhead" data-reveal>Acute lymphoblastic leukemia is diagnosed by examining a blood
-    smear one cell at a time. This network ranks every cell by how closely it resembles a leukemic
-    lymphoblast, so the reviewer reaches the most suspicious ones sooner — running entirely in the
-    browser, with no image ever leaving the device.</p>
-    <div class="btn-row" data-reveal>
-      <a class="btn" href="#demo">Try the demo</a>
-      <a class="btn-ghost" href="#background">Read the background</a>
+  <div class="wrap hero__grid">
+    <div class="hero__copy">
+      <p class="eyebrow">cell-level triage for leukemia screening</p>
+      <h1 class="h-hero">
+        <span class="mask"><span>The cells that matter most,</span></span>
+        <span class="mask"><span>seen first.</span></span>
+      </h1>
+      <p class="subhead">Acute lymphoblastic leukemia is diagnosed by examining a blood
+      smear one cell at a time. This network ranks every cell by how closely it resembles a leukemic
+      lymphoblast, so the reviewer reaches the most suspicious ones sooner — running entirely in the
+      browser, with no image ever leaving the device.</p>
+      <p class="hero__miss">At the 0.770 threshold it missed <b>243 of 1,094</b> leukemic cells
+      in the test set — sensitivity 0.778. An unflagged cell has not been cleared; the reviewer
+      still reads every one.</p>
+      <div class="btn-row">
+        <a class="btn" href="#sec-demo">Try the demo</a>
+        <a class="btn-ghost" href="#background">Read the background</a>
+      </div>
+    </div>
+
+    <div class="hero__label">
+      <div class="specimen" role="group" aria-labelledby="specimen-h">
+        <p class="specimen__head" id="specimen-h"><span>held-out test set</span><span>subject-disjoint</span></p>
+        <dl>
+          <dt>dataset</dt>   <dd>C-NMC 2019 <span>· ISBI challenge, paediatric B-ALL</span></dd>
+          <dt>patients</dt>  <dd>11 test <span>· 51 train · 11 validation</span></dd>
+          <dt>cells</dt>     <dd>1,882 <span>· 1,094 leukemic · 788 normal</span></dd>
+          <dt>split</dt>     <dd>by patient, 70/15/15 <span>· seed</span> 42</dd>
+          <dt>threshold</dt> <dd>0.770 <span>· chosen on validation patients</span></dd>
+        </dl>
+      </div>
+
+      <figure class="minifield">
+        <canvas id="minifield" role="img"
+          aria-label="A small field of 1,882 marks, one per test cell. Upper block, the 1,094 leukemic cells: 851 flagged, then 243 missed along its lower edge. Lower block, the 788 normal cells: 36 falsely flagged, 752 cleared."></canvas>
+        <ul class="minifield__key">
+          <li><span class="key key--tp" aria-hidden="true"></span><b>851</b> flagged</li>
+          <li class="is-miss"><span class="key key--fn" aria-hidden="true"></span><b>243</b> missed</li>
+          <li><span class="key key--fp" aria-hidden="true"></span><b>36</b> false flags</li>
+          <li><span class="key key--tn" aria-hidden="true"></span><b>752</b> cleared</li>
+        </ul>
+        <figcaption>One mark per test cell. The full field is under
+        <a href="#sec-results">Results</a>.</figcaption>
+      </figure>
     </div>
   </div>
 </header>
@@ -216,9 +246,9 @@
 
     <h3 class="h-sub" data-reveal>1,882 cells, and what happened to each one</h3>
     <p class="prose" data-reveal>Every cell in the test set is one mark. The upper block is the
-    1,094 cells that actually were leukemic; the lower block is the 788 that were not. Crimson
-    means leukemia is present in the cell — solid where the model caught it, hollow where it
-    did not.</p>
+    1,094 cells that actually were leukemic; the lower block is the 788 that were not. Violet is
+    a leukemic cell the model flagged, rose a leukemic cell it missed, and a steel ring a normal
+    cell it flagged in error.</p>
 
     <figure class="field" data-reveal>
       <div class="field__canvas-wrap">
@@ -638,8 +668,8 @@
     </h2>
     <p class="subhead" data-reveal>No server, no upload, no account — 47.7 MB and a tab.</p>
     <div class="btn-row" data-reveal>
-      <a class="btn" href="#demo">Try the demo</a>
-      <a class="btn-ghost" href="#method">How it works</a>
+      <a class="btn" href="#sec-demo">Try the demo</a>
+      <a class="btn-ghost" href="#sec-method">How it works</a>
     </div>
 
     <div class="disclaimer disclaimer--foot">
