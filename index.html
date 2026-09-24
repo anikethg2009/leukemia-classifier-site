@@ -103,9 +103,8 @@
       smear one cell at a time. This network ranks every cell by how closely it resembles a leukemic
       lymphoblast, so the reviewer reaches the most suspicious ones sooner — running entirely in the
       browser, with no image ever leaving the device.</p>
-      <p class="hero__miss">At the 0.770 threshold it missed <b>243 of 1,094</b> leukemic cells
-      in the test set — sensitivity 0.778. An unflagged cell has not been cleared; the reviewer
-      still reads every one.</p>
+      <p class="hero__lead"><b>0.959</b> precision on 11 patients held out of training — of every
+      100 cells it flags, about 96 really are leukemic. Sensitivity 0.778.</p>
       <div class="btn-row">
         <a class="btn" href="#sec-demo">Try the demo</a>
         <a class="btn-ghost" href="#background">Read the background</a>
@@ -126,7 +125,7 @@
 
       <figure class="minifield">
         <canvas id="minifield" role="img"
-          aria-label="A small field of 1,882 marks, one per test cell. Upper block, the 1,094 leukemic cells: 851 flagged, then 243 missed along its lower edge. Lower block, the 788 normal cells: 36 falsely flagged, 752 cleared."></canvas>
+          aria-label="A small field of 1,882 marks, one per test cell, with the outcomes interspersed. Upper block, the 1,094 leukemic cells: 851 flagged and 243 missed. Lower block, the 788 normal cells: 36 falsely flagged and 752 cleared."></canvas>
         <ul class="minifield__key">
           <li><span class="key key--tp" aria-hidden="true"></span><b>851</b> flagged</li>
           <li class="is-miss"><span class="key key--fn" aria-hidden="true"></span><b>243</b> missed</li>
@@ -243,6 +242,10 @@
         <p class="stat__c">the whole network, downloaded once and run inside your browser</p>
       </div>
     </div>
+
+    <p class="miss-line" data-reveal>At the 0.770 threshold it missed <b>243 of 1,094</b> leukemic
+    cells in the test set — sensitivity 0.778. An unflagged cell has not been cleared; the
+    reviewer still reads every one.</p>
 
     <h3 class="h-sub" data-reveal>1,882 cells, and what happened to each one</h3>
     <p class="prose" data-reveal>Every cell in the test set is one mark. The upper block is the
@@ -369,65 +372,6 @@
 
 <section class="panel" id="panel-method" role="tabpanel" aria-labelledby="tab-method" tabindex="-1">
 
-<!-- ─────────────────────────────  validation  ───────────────────────────── -->
-<section class="section" id="validation">
-  <div class="wrap">
-    <p class="eyebrow" data-reveal>validation</p>
-    <h2 class="h-section">
-      <span class="mask"><span>Scored the hard way,</span></span>
-      <span class="mask"><span>on purpose.</span></span>
-    </h2>
-
-    <div class="prose" data-reveal>
-      <p>C-NMC gives you many cells per patient, and the obvious way to split it — divide the
-      images at random — puts cells from the same patient on both sides of the wall. That looks
-      harmless and is not.</p>
-      <p>Cells from one patient share a blood draw, a staining batch, a slide, a microscope, and
-      a lighting setup. Those things leave a signature on every image — a cast, a texture, a
-      background tint — that has nothing to do with whether the cell is malignant. A network with
-      cells from patient 07 in its training set does not have to learn what a lymphoblast is in
-      order to score patient 07's test cells. It can learn what patient 07 looks like, and recall
-      the label.</p>
-      <p>So the split here was rebuilt by patient, and verified subject-disjoint before training
-      began. Every number on this page comes from eleven patients the network had never seen in
-      any form.</p>
-    </div>
-
-    <figure class="split" data-reveal>
-      <div id="splitfig"></div>
-      <figcaption>Schematic, not data. Under a random split by image, patient 07's cells are
-      on both sides and the label can be recovered by recognising the patient. Under a split
-      by patient, patient 07 is on one side only, and the test set asks a question the network
-      has not already been given the answer to.</figcaption>
-    </figure>
-
-    <p class="tcaption" id="ba-cap" data-reveal>The same architecture, the same data, the same
-    recipe. The only change was which folder each file went into.</p>
-    <div class="scroll-x" data-reveal>
-    <table class="before-after" aria-describedby="ba-cap">
-      <thead>
-        <tr><th scope="col">Measure</th>
-            <th scope="col" class="num">Split by image<span>the easy score</span></th>
-            <th scope="col" class="num">Split by patient<span>what is published</span></th>
-            <th scope="col" class="num">Change</th></tr>
-      </thead>
-      <tbody>
-        <tr><th scope="row">F1</th>
-            <td class="num stale">0.953</td><td class="num live">0.859</td>
-            <td class="num delta">&minus;0.094</td></tr>
-        <tr><th scope="row">Sensitivity</th>
-            <td class="num stale">0.947</td><td class="num live">0.778</td>
-            <td class="num delta">&minus;0.169</td></tr>
-      </tbody>
-    </table>
-    </div>
-
-    <p class="kicker" data-reveal>Splitting by patient is harder to score well on, and it is the
-    only split that answers the question a clinic would actually ask: how does this behave on
-    someone it has never met? The published figures are the ones that survived that test.</p>
-  </div>
-</section>
-
 <!-- ─────────────────────────────  method cards  ───────────────────────────── -->
 <section class="section" id="sec-method">
   <div class="wrap">
@@ -473,6 +417,64 @@
         <p>The browser copy stores weights at float16 — half the bytes, scores differing by up
         to about 0.002. Every metric here came from the float32 export.</p></div>
     </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────  validation method  ───────────────────────────── -->
+<section class="section" id="validation">
+  <div class="wrap">
+    <p class="eyebrow" data-reveal>validation method</p>
+    <h2 class="h-section">
+      <span class="mask"><span>How it was tested.</span></span>
+    </h2>
+
+    <div class="prose" data-reveal>
+      <p>C-NMC contains many cells per patient. Dividing the images at random would place cells
+      from the same patient in both the training set and the test set, so the evaluation here
+      splits by patient instead.</p>
+      <p>Cells from one patient share a blood draw, a staining batch, a slide, a microscope, and
+      a lighting setup. Those leave a signature on every image — a cast, a texture, a background
+      tint — that has nothing to do with whether the cell is malignant. A network with cells from
+      patient 07 in its training set does not have to learn what a lymphoblast is in order to
+      score patient 07's test cells; it can learn what patient 07 looks like, and recall the
+      label.</p>
+      <p>The first version of the split was by image. The published split is by patient, verified
+      subject-disjoint before training began. Every number on this page comes from eleven
+      patients the network had never seen in any form.</p>
+    </div>
+
+    <figure class="split" data-reveal>
+      <div id="splitfig"></div>
+      <figcaption>Schematic, not data. Under a random split by image, patient 07's cells are
+      on both sides and the label can be recovered by recognising the patient. Under a split
+      by patient, patient 07 is on one side only, and the test set asks a question the network
+      has not already been given the answer to.</figcaption>
+    </figure>
+
+    <p class="tcaption" id="ba-cap" data-reveal>The same architecture, the same data, the same
+    recipe. The only change was which folder each file went into.</p>
+    <div class="scroll-x" data-reveal>
+    <table class="before-after" aria-describedby="ba-cap">
+      <thead>
+        <tr><th scope="col">Measure</th>
+            <th scope="col" class="num">Split by image<span>the easy score</span></th>
+            <th scope="col" class="num">Split by patient<span>what is published</span></th>
+            <th scope="col" class="num">Change</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">F1</th>
+            <td class="num stale">0.953</td><td class="num live">0.859</td>
+            <td class="num delta">&minus;0.094</td></tr>
+        <tr><th scope="row">Sensitivity</th>
+            <td class="num stale">0.947</td><td class="num live">0.778</td>
+            <td class="num delta">&minus;0.169</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <p class="kicker" data-reveal>A patient-level split scores lower, and it is the split that
+    matches the question a clinic would ask: how does this behave on someone it has never met?
+    The published figures are measured that way.</p>
   </div>
 </section>
 

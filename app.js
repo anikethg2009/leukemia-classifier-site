@@ -62,11 +62,12 @@ const THRESHOLD = 0.770;
 })();
 
 /* ══════════════════════════════════════════════════════════════════════════
-   The compact cell field in the hero. Same order as the full field in
-   figures.js — leukemic cells caught first, missed last, so the 243 misses
-   sit as one rose block along the lower edge — but small, solid marks, no
-   labels and no animation: it is there to be seen on the first screen, not
-   explored. The counts are the ones in the specimen label and the matrix.
+   The compact cell field in the hero: a picture of the test set, not of any
+   one outcome. Leukemic cells above, normal below, as in the full field, but
+   within each block the outcomes are interspersed by a fixed-seed shuffle,
+   so no group forms a band and the drawing is identical on every load. The
+   full field in figures.js keeps its grouped order, where the misses read as
+   a block. Counts are the ones in the specimen label and the matrix.
    ══════════════════════════════════════════════════════════════════════════ */
 (function miniField () {
   const cv = document.getElementById('minifield');
@@ -74,6 +75,20 @@ const THRESHOLD = 0.770;
   const ctx = cv.getContext('2d');
   const N = { tp: 851, fn: 243, fp: 36, tn: 752 };
   const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+  /* one fixed order per block, computed once */
+  let seed = 42;
+  const rnd = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+  const block = (a, na, b, nb) => {
+    const out = Array(na).fill(a).concat(Array(nb).fill(b));
+    for (let i = out.length - 1; i > 0; i--) {
+      const j = Math.floor(rnd() * (i + 1));
+      [out[i], out[j]] = [out[j], out[i]];
+    }
+    return out;
+  };
+  const LEUK = block('tp', N.tp, 'fn', N.fn);
+  const NORM = block('fp', N.fp, 'tn', N.tn);
 
   function draw () {
     const W = cv.parentElement.clientWidth;
@@ -99,9 +114,9 @@ const THRESHOLD = 0.770;
         ctx.arc(x, y, r, 0, 6.2832); ctx.fillStyle = col[g]; ctx.fill();
       }
     };
-    for (let i = 0; i < N.tp + N.fn; i++) dot(i, 0, i < N.tp ? 'tp' : 'fn');
+    LEUK.forEach((g, i) => dot(i, 0, g));
     const yB = rowsA * p + gap;
-    for (let j = 0; j < N.fp + N.tn; j++) dot(j, yB, j < N.fp ? 'fp' : 'tn');
+    NORM.forEach((g, j) => dot(j, yB, g));
   }
 
   draw();

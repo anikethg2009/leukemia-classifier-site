@@ -178,10 +178,16 @@ a.btn,a.btn-ghost{ border-bottom-width:1px; }
 .hero .subhead{ max-width:50ch; margin-top:1.4rem; font-size:clamp(1.05rem,1.35vw,1.2rem); }
 .hero .btn-row{ margin-top:1.8rem; }
 
-/* the honest headline: rose, and never below the fold */
-.hero__miss{ margin:1.5rem 0 0; max-width:52ch; padding:.15em 0 .15em 1.1rem;
-  border-left:3px solid var(--rose); color:var(--ink); font-size:1.05rem; line-height:1.5; }
-.hero__miss b{ font-family:var(--mono); font-weight:600; color:var(--rose);
+/* what it gets right, in the hue of a correctly flagged cell */
+.hero__lead{ margin:1.5rem 0 0; max-width:52ch; padding:.15em 0 .15em 1.1rem;
+  border-left:3px solid var(--violet); color:var(--ink); font-size:1.05rem; line-height:1.5; }
+.hero__lead b{ font-family:var(--mono); font-weight:600; color:var(--violet);
+  font-variant-numeric:tabular-nums; font-size:.92em; }
+
+/* the miss rate, stated in words directly under the Results figures */
+.miss-line{ margin:3rem 0 0; max-width:60ch; padding:.2em 0 .2em 1.2rem;
+  border-left:3px solid var(--rose); color:var(--ink); font-size:1.15rem; line-height:1.55; }
+.miss-line b{ font-family:var(--mono); font-weight:600; color:var(--rose);
   font-variant-numeric:tabular-nums; font-size:.92em; }
 
 /* ── specimen label: reads like the paper label on a microscope slide ────── */
