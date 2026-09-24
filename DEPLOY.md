@@ -9,7 +9,7 @@ there is no `_site`, no bundler, and nothing to compile.
 | Repository | `anikethg2009/leukemia-classifier-site` — **public** |
 | Branch to serve | `main` |
 | Folder | **`/ (root)`** |
-| Live URL | `https://anikethg2009.github.io/leukemia-classifier-site/` |
+| Live URL | `https://astraeahealth.org/` (custom domain, set by `CNAME`; the old `github.io` project URL 301s here) |
 
 `.nojekyll` is committed at the root. Keep it. Without it Pages runs the files
 through Jekyll, which silently drops paths beginning with `_` and adds build
@@ -88,7 +88,7 @@ CDN in front of it.
 Set this once so the commands can be pasted as-is:
 
 ```sh
-SITE=https://anikethg2009.github.io/leukemia-classifier-site
+SITE=https://astraeahealth.org
 ```
 
 ### 3.1 The model actually serves, whole, over HTTPS
@@ -228,7 +228,7 @@ DNS records at GitHub, and re-tick **Enforce HTTPS** once the certificate is
 issued.
 
 Also bump `<lastmod>` in `sitemap.xml` when the page content changes
-meaningfully. It currently reads `2026-09-12`.
+meaningfully. It currently reads `2026-09-23`.
 
 ---
 

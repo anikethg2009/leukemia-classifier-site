@@ -11,7 +11,7 @@
      three lines tagged [SITE URL] below, plus the "url" field inside the
      JSON-LD block, which cannot carry a tag because JSON forbids comments.
 
-     Placeholder is the GitHub Pages project URL. Moving to a custom domain
+     The site is served from the custom domain in CNAME. Moving it again
      means editing all four of those here, plus one line in each of:
          robots.txt    the `Sitemap:` line
          sitemap.xml   the `<loc>` line
@@ -25,15 +25,15 @@
      Twitter scrapers do not execute JavaScript, so the absolute URL has to be
      literal in the markup by the time the page is served.
 ═══════════════════════════════════════════════════════════════════════════ -->
-<link rel="canonical" href="https://anikethg2009.github.io/leukemia-classifier-site/"><!-- [SITE URL] -->
+<link rel="canonical" href="https://astraeahealth.org/"><!-- [SITE URL] -->
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Astraea Health">
 <meta property="og:title" content="Cell-level triage for leukemia – Astraea Health">
 <meta property="og:description" content="A neural network that ranks single white-blood-cell images by resemblance to leukemic lymphoblasts. Precision 0.959, AUC 0.858 on 11 patients held out of training.">
-<meta property="og:url" content="https://anikethg2009.github.io/leukemia-classifier-site/"><!-- [SITE URL] -->
+<meta property="og:url" content="https://astraeahealth.org/"><!-- [SITE URL] -->
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="https://anikethg2009.github.io/leukemia-classifier-site/og-card.png"><!-- [SITE URL] -->
+<meta property="og:image" content="https://astraeahealth.org/og-card.png"><!-- [SITE URL] -->
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -48,7 +48,7 @@
   "@context": "https://schema.org",
   "@type": "WebApplication",
   "name": "Cell-level triage for acute lymphoblastic leukemia",
-  "url": "https://anikethg2009.github.io/leukemia-classifier-site/",
+  "url": "https://astraeahealth.org/",
   "description": "A neural network that ranks single white-blood-cell images by resemblance to leukemic lymphoblasts. Precision 0.959, AUC 0.858 on 11 patients held out of training.",
   "applicationCategory": "ResearchApplication",
   "browserRequirements": "Requires JavaScript and WebAssembly for the demo; the rest of the page needs neither.",

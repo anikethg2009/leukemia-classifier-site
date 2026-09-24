@@ -9,5 +9,5 @@ Allow: /
 Disallow: /models/
 Disallow: /vendor/
 
-# Change this line too if the site moves to a custom domain.
-Sitemap: https://anikethg2009.github.io/leukemia-classifier-site/sitemap.xml
+# Change this line too if the site moves to another domain.
+Sitemap: https://astraeahealth.org/sitemap.xml
