@@ -1,7 +1,8 @@
 /* ============================================================================
    Leukemic lymphoblast screening aid
 
-   Three drawings and one demo:
+   The cover field, three drawings and one demo:
+     0. the cover: 1,882 uncoloured points, one per test cell
      1. the field of 1,882 test cells
      2. the ROC curve (points traced from the project's own plot, roc-data.js)
      3. a schematic of the two ways to split the dataset
@@ -14,55 +15,129 @@ const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const THRESHOLD = 0.770;
 
 /* ══════════════════════════════════════════════════════════════════════════
-   Figures are loaded on first activation of the panel that owns them.
+   Figures. The page is one document now, so every figure is mounted as soon
+   as the module arrives rather than when a tab is first opened. figures.js
+   is 21 KB; the deferral that mattered was the 47.7 MB of weights, and that
+   still waits for the acknowledgement gate.
    ══════════════════════════════════════════════════════════════════════════ */
 (function figureLoader () {
-  let mod = null;
-  const load = () => (mod || (mod = import('./figures.js')));
-
-  /* One frame after the panel is displayed, so the canvas measures a laid-out
-     parent rather than a zero-width one. */
+  /* One frame after layout, so each canvas measures a laid-out parent. */
   const afterLayout = fn => requestAnimationFrame(() => requestAnimationFrame(fn));
 
-  async function mount (id) {
-    /* decide before loading: Overview and Demo have no figures, so they must
-       not pull the module in at all */
-    if (id !== 'results' && id !== 'method') return;
-    try {
-      const f = await load();
-      if (id === 'results') afterLayout(() => { f.mountCellField(); f.mountRoc(THRESHOLD); });
-      else afterLayout(() => f.mountSplit());
-    } catch (e) {
-      /* figures are enhancement; the tables carry the same numbers */
-    }
+  /* Mounting grows the page above anything that follows a figure, so a deep
+     link that the browser has already scrolled to (#sec-demo, #limits)
+     would be pushed off its heading. Hold the target in place while the
+     figures settle, and let go the moment the visitor scrolls themselves. */
+  function holdArrival () {
+    const id = decodeURIComponent((location.hash || '').slice(1));
+    const el = id && document.getElementById(id);
+    if (!el || typeof ResizeObserver !== 'function') return;
+    let done = false, first = true;
+    const EV = ['wheel', 'touchstart', 'keydown', 'mousedown'];
+    const stop = () => {
+      if (done) return;
+      done = true; ro.disconnect();
+      EV.forEach(t => window.removeEventListener(t, stop));
+    };
+    const ro = new ResizeObserver(() => {
+      if (first) { first = false; return; }   /* the observe() call itself */
+      if (!done) el.scrollIntoView({ behavior: 'auto', block: 'start' });
+    });
+    ro.observe(document.body);
+    EV.forEach(t => window.addEventListener(t, stop, { passive: true }));
+    setTimeout(stop, 1500);
+  }
+  holdArrival();
+
+  const mountAll = () => import('./figures.js').then(f => afterLayout(() => {
+    f.mountCellField(); f.mountRoc(THRESHOLD); f.mountSplit();
+  })).catch(() => { /* figures are enhancement; the tables carry the same numbers */ });
+
+  if (document.readyState === 'loading') addEventListener('DOMContentLoaded', mountAll);
+  else mountAll();
+})();
+
+/* ══════════════════════════════════════════════════════════════════════════
+   0. The cover field. One point per cell in the held-out test set, 1,882 in
+   all, in ink only: no class colour, because on the cover the points make
+   no claim about any cell. Their positions are a fixed-seed random scatter,
+   not data, and the alt text says so. Results draws the same 1,882 cells
+   sorted and coloured by outcome.
+
+   The points fade in once, in random order, and then the drawing holds
+   still. With reduced motion it is drawn in a single frame.
+   ══════════════════════════════════════════════════════════════════════════ */
+(function coverField () {
+  const cv = document.getElementById('coverfield');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const N = 851 + 243 + 36 + 752;            /* the test set, as in the matrix */
+  const INK = getComputedStyle(document.documentElement).getPropertyValue('--ink').trim() || '#2E1A3D';
+
+  /* Positions in unit space, made once. Density thins toward the left edge
+     of the field, by rejection, so the points give way to the type without
+     a gradient laid over them. Each point keeps its own size and weight, like
+     stars of different magnitude. */
+  let seed = 1882;
+  const rnd = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+  const pts = [];
+  while (pts.length < N) {
+    const u = rnd(), v = rnd();
+    if (rnd() > Math.pow(u, 0.55)) continue;
+    pts.push({ u, v, r: 0.8 + rnd() * 1.5, a: 0.14 + Math.pow(rnd(), 2.2) * 0.34, t: rnd() });
   }
 
-  document.addEventListener('panel:show', e => mount(e.detail && e.detail.id));
+  /* Every point is always drawn; on a small field they get smaller rather
+     than fewer, scaled by area against a desktop-sized field. */
+  let W = 0, H = 0, scale = 1;
+  function size () {
+    const box = cv.getBoundingClientRect();
+    W = box.width; H = box.height;
+    if (!W || !H) return false;
+    scale = Math.max(0.5, Math.min(1, Math.sqrt((W * H) / (820 * 840))));
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return true;
+  }
 
-  /* Printing expands every panel, including ones the reader never opened,
-     whose figures were therefore never mounted. Loading the module is async,
-     so a figure may miss the first print preview and appear on the next; the
-     table beside each one carries the same numbers either way. */
-  addEventListener('beforeprint', () => { mount('results'); mount('method'); });
-
-  /* tabs.js runs before this file and has already shown a panel, so its
-     panel:show for the initial tab fired before the listener above existed.
-     Catch up with whatever is on screen now. */
-  document.querySelectorAll('.panel:not([hidden])').forEach(
-    p => mount(p.id.replace(/^panel-/, '')));
-
-  /* If the tab layer never ran, every panel is visible, so mount everything. */
-  addEventListener('DOMContentLoaded', () => {
-    if (!document.documentElement.classList.contains('js-tabs')) {
-      load().then(f => afterLayout(() => {
-        f.mountCellField(); f.mountRoc(THRESHOLD); f.mountSplit();
-      })).catch(() => {});
+  /* k in 0..1 is how far the fade-in has run; each point has its own start */
+  function draw (k) {
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = INK;
+    const pad = 10;
+    for (const p of pts) {
+      const f = k >= 1 ? 1 : Math.max(0, Math.min(1, (k - p.t * 0.75) / 0.25));
+      if (!f) continue;
+      ctx.globalAlpha = p.a * f;
+      ctx.beginPath();
+      ctx.arc(pad + p.u * (W - 2 * pad), pad + p.v * (H - 2 * pad), p.r * scale, 0, 6.2832);
+      ctx.fill();
     }
+    ctx.globalAlpha = 1;
+  }
+
+  let done = REDUCED;
+  if (!size()) return;
+  if (REDUCED) draw(1);
+  else {
+    const t0 = performance.now(), dur = 1400;
+    (function step (now) {
+      const k = Math.min(1, (now - t0) / dur);
+      draw(k);
+      if (k < 1) requestAnimationFrame(step); else done = true;
+    })(t0);
+  }
+
+  let rAF;
+  window.addEventListener('resize', () => {
+    cancelAnimationFrame(rAF);
+    rAF = requestAnimationFrame(() => { if (size() && done) draw(1); });
   });
 })();
 
 /* ══════════════════════════════════════════════════════════════════════════
-   The compact cell field in the hero: a picture of the test set, not of any
+   The compact cell field at the top of Results: a picture of the test set, not of any
    one outcome. Leukemic cells above, normal below, as in the full field, but
    within each block the outcomes are interspersed by a fixed-seed shuffle,
    so no group forms a band and the drawing is identical on every load. The
@@ -144,7 +219,7 @@ const THRESHOLD = 0.770;
   const MEAN_B = 103.939, MEAN_G = 116.779, MEAN_R = 123.68;
 
   /* The runtime is served from this origin and is not fetched until the
-     visitor asks for the model, or hovers the Demo tab. */
+     visitor asks for the model, or hovers the Demo link in the nav. */
   let ortPromise = null;
   function ensureOrt () {
     if (typeof ort !== 'undefined') return Promise.resolve();
@@ -153,12 +228,12 @@ const THRESHOLD = 0.770;
       const el = document.createElement('script');
       el.src = ORT_SRC;
       el.onload  = () => res();
-      el.onerror = () => { ortPromise = null; rej(new Error('ort-cdn')); };
+      el.onerror = () => { ortPromise = null; rej(new Error('ort-load')); };
       document.head.appendChild(el);
     });
     return ortPromise;
   }
-  window.__ensureOrt = ensureOrt;   /* the Demo tab prefetches the runtime only */
+  window.__ensureOrt = ensureOrt;   /* the Demo nav link prefetches the runtime only */
 
   /* Drop caches from earlier weight versions so an old copy cannot linger. */
   if (window.caches && caches.keys) {
@@ -346,12 +421,12 @@ const THRESHOLD = 0.770;
       loadBtn.disabled = false;
       setHint(modelStatus, 'The model did not load.', 'bad');
 
-      if (e && e.message === 'ort-cdn') {
+      if (e && e.message === 'ort-load') {
         setHint(modelStatus, 'ONNX Runtime did not load.', 'bad');
         fail('The inference runtime could not be loaded.',
-          ' <code>onnxruntime-web@' + ORT_VERSION + '</code> is fetched from jsDelivr. ' +
-          'A blocked CDN, an offline connection, or a strict content blocker will stop it. ' +
-          'Everything else on this page works without it.');
+          ' <code>onnxruntime-web@' + ORT_VERSION + '</code> is served from this site, at ' +
+          '<code>' + ORT_SRC + '</code>. A dropped connection, a missing file, or a strict ' +
+          'content blocker will stop it. Everything else on this page works without it.');
       } else if (e && e.http === 404) {
         fail('The model file is missing.',
           ' Nothing was found at <code>' + MODEL_URL + '</code> (HTTP 404). ' +
@@ -561,26 +636,8 @@ const THRESHOLD = 0.770;
     hits.forEach(e => { countUp(e.target); obs.unobserve(e.target); });
   });
 
-  const wired = new Set();
-  function wire (root) {
-    if (!root || wired.has(root)) return;
-    wired.add(root);
-    root.querySelectorAll('[data-reveal]').forEach(e => revealIO.observe(e));
-    root.querySelectorAll('.mask').forEach(e => maskIO.observe(e));
-    root.querySelectorAll('[data-count]').forEach(e => { reserve(e); countIO.observe(e); });
-  }
-
-  /* hero and footer sit outside the tab system */
-  document.querySelectorAll('.hero, .cta').forEach(wire);
-
-  document.addEventListener('panel:show', e => {
-    wire(document.getElementById('panel-' + (e.detail && e.detail.id)));
-  });
-
-  /* tabs.js activated a panel before this file ran, so catch up */
-  document.querySelectorAll('.panel:not([hidden])').forEach(wire);
-
-  if (!document.documentElement.classList.contains('js-tabs')) {
-    document.querySelectorAll('.panel').forEach(wire);
-  }
+  /* one document, wired once; the cover and footer are no longer special */
+  document.querySelectorAll('[data-reveal]').forEach(e => revealIO.observe(e));
+  document.querySelectorAll('.mask').forEach(e => maskIO.observe(e));
+  document.querySelectorAll('[data-count]').forEach(e => { reserve(e); countIO.observe(e); });
 })();

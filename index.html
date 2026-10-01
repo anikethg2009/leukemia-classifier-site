@@ -56,7 +56,10 @@
   "isAccessibleForFree": true,
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
   "inLanguage": "en",
-  "creator": { "@type": "Person", "name": "Aniketh Guttikonda" },
+  "creator": [
+    { "@type": "Person", "name": "Aniketh Guttikonda" },
+    { "@type": "Person", "name": "Eugene Choi" }
+  ],
   "disambiguatingDescription": "A student research project, not a medical device. It ranks pre-segmented single-cell images by visual similarity to leukemic lymphoblasts for a qualified reviewer; it does not detect or diagnose leukemia and must not inform a clinical decision."
 }
 </script>
@@ -67,20 +70,17 @@
 <link rel="preload" href="fonts/ibm-plex-mono-500.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="style.css">
 <script>
-/* Runs before first paint so the active panel is the only one ever painted:
-   no flash of the full document collapsing, without needing an overlay to
-   hide it. With JS off this never runs, the class is never set, and every
-   panel stays visible. The map mirrors the panel grouping below; anything
-   not listed falls back to Overview and tabs.js corrects it after parse. */
+/* Runs before first paint. Marks the document as scripted, for the few
+   things that only make sense with JS (the cover field, the mobile menu).
+   #overview was the old Overview tab and never named an element; rewrite it
+   to the section it became before the browser looks for it. The other old
+   tab hashes (#results, #method, #demo) are real ids now and need nothing. */
 (function () {
-  var OWN = { overview:'overview', results:'results', method:'method', demo:'demo',
-              background:'overview', impact:'overview',
-              'sec-results':'results', tradeoff:'results',
-              validation:'method', 'sec-method':'method', limits:'method',
-              'sec-demo':'demo' };
   var d = document.documentElement;
-  d.className += ' js-tabs';
-  d.setAttribute('data-tab', OWN[(location.hash || '').slice(1)] || 'overview');
+  d.className += ' js';
+  if (location.hash === '#overview' && history.replaceState) {
+    history.replaceState(null, '', '#what');
+  }
 })();
 </script>
 </head>
@@ -88,71 +88,75 @@
 
 <a class="skip" href="#main">Skip to content</a>
 
-<main id="main">
-
-<!-- ─────────────────────────────  hero  ───────────────────────────── -->
-<header class="hero">
-  <div class="wrap hero__grid">
-    <div class="hero__copy">
-      <p class="eyebrow">cell-level triage for leukemia screening</p>
-      <h1 class="h-hero">
-        <span class="mask"><span>The cells that matter most,</span></span>
-        <span class="mask"><span>seen first.</span></span>
-      </h1>
-      <p class="subhead">Acute lymphoblastic leukemia is diagnosed by examining a blood
-      smear one cell at a time. This network ranks every cell by how closely it resembles a leukemic
-      lymphoblast, so the reviewer reaches the most suspicious ones sooner — running entirely in the
-      browser, with no image ever leaving the device.</p>
-      <p class="hero__lead"><b>0.959</b> precision on 11 patients held out of training — of every
-      100 cells it flags, about 96 really are leukemic. Sensitivity 0.778.</p>
-      <div class="btn-row">
-        <a class="btn" href="#sec-demo">Try the demo</a>
-        <a class="btn-ghost" href="#background">Read the background</a>
-      </div>
-    </div>
-
-    <div class="hero__label">
-      <div class="specimen" role="group" aria-labelledby="specimen-h">
-        <p class="specimen__head" id="specimen-h"><span>held-out test set</span><span>subject-disjoint</span></p>
-        <dl>
-          <dt>dataset</dt>   <dd>C-NMC 2019 <span>· ISBI challenge, paediatric B-ALL</span></dd>
-          <dt>patients</dt>  <dd>11 test <span>· 51 train · 11 validation</span></dd>
-          <dt>cells</dt>     <dd>1,882 <span>· 1,094 leukemic · 788 normal</span></dd>
-          <dt>split</dt>     <dd>by patient, 70/15/15 <span>· seed</span> 42</dd>
-          <dt>threshold</dt> <dd>0.770 <span>· chosen on validation patients</span></dd>
-        </dl>
-      </div>
-
-      <figure class="minifield">
-        <canvas id="minifield" role="img"
-          aria-label="A small field of 1,882 marks, one per test cell, with the outcomes interspersed. Upper block, the 1,094 leukemic cells: 851 flagged and 243 missed. Lower block, the 788 normal cells: 36 falsely flagged and 752 cleared."></canvas>
-        <ul class="minifield__key">
-          <li><span class="key key--tp" aria-hidden="true"></span><b>851</b> flagged</li>
-          <li class="is-miss"><span class="key key--fn" aria-hidden="true"></span><b>243</b> missed</li>
-          <li><span class="key key--fp" aria-hidden="true"></span><b>36</b> false flags</li>
-          <li><span class="key key--tn" aria-hidden="true"></span><b>752</b> cleared</li>
-        </ul>
-        <figcaption>One mark per test cell. The full field is under
-        <a href="#sec-results">Results</a>.</figcaption>
-      </figure>
-    </div>
+<!-- ─────────────────────────────  nav  ───────────────────────────── -->
+<header class="nav" id="nav">
+  <div class="wrap nav__bar">
+    <a class="nav__mark" href="#top">Astraea Health</a>
+    <button type="button" class="nav__toggle" id="navToggle"
+      aria-expanded="false" aria-controls="navList" hidden>Menu</button>
+    <nav class="nav__nav" aria-label="Sections">
+      <ul class="nav__list" id="navList">
+        <li><a href="#why">Why</a></li>
+        <li><a href="#what">What it does</a></li>
+        <li><a href="#results">Results</a></li>
+        <li><a href="#method">Method</a></li>
+        <li><a href="#demo">Demo</a></li>
+        <li><a href="#limits">Limits</a></li>
+      </ul>
+    </nav>
   </div>
 </header>
 
-<!-- ─────────────────────────────  tabs  ───────────────────────────── -->
-<div class="tabs" id="tabs">
+<main id="main">
+
+<!-- ─────────────────────────────  cover  ───────────────────────────── -->
+<header class="cover" id="top">
+  <canvas class="cover__field" id="coverfield" role="img"
+    aria-label="A quiet field of 1,882 faint points, one for each cell in the held-out test set, arranged at random."></canvas>
+  <div class="wrap cover__wrap">
+    <div class="cover__main">
+      <h1 class="cover__name"><span>Astraea</span> <span>Health</span></h1>
+      <p class="cover__line">It puts microscope images of single blood cells in order, so the
+      person checking them sees the most leukemia-like cells first.</p>
+      <div class="btn-row">
+        <a class="btn" href="#why">Read on</a>
+      </div>
+    </div>
+    <ul class="cover__facts">
+      <li>Developed on 13,315 single-cell microscopy images from 73 people</li>
+      <li>Presented internationally at a research collaboration in Austria</li>
+      <li>Runs entirely in your browser. Free, no upload, no account</li>
+    </ul>
+  </div>
+</header>
+
+<!-- ─────────────────────────────  why  ───────────────────────────── -->
+<section class="group why" id="why">
   <div class="wrap">
-    <div class="tablist" role="tablist" aria-label="Sections of this project">
-      <button type="button" class="tab" role="tab" id="tab-overview" aria-controls="panel-overview" aria-selected="false" tabindex="-1" data-tab="overview">Overview</button>
-      <button type="button" class="tab" role="tab" id="tab-results" aria-controls="panel-results" aria-selected="false" tabindex="-1" data-tab="results">Results</button>
-      <button type="button" class="tab" role="tab" id="tab-method" aria-controls="panel-method" aria-selected="false" tabindex="-1" data-tab="method">Method</button>
-      <button type="button" class="tab" role="tab" id="tab-demo" aria-controls="panel-demo" aria-selected="false" tabindex="-1" data-tab="demo">Demo</button>
+    <h2 class="runhead"><span class="runhead__i">01</span>Why</h2>
+    <div class="why__body">
+      <p>[WHY SECTION — personal account of why the project was started. To be supplied by Aniketh.]</p>
     </div>
   </div>
-</div>
-<p class="sr-only" id="tabAnnounce" role="status" aria-live="polite"></p>
+</section>
 
-<section class="panel" id="panel-overview" role="tabpanel" aria-labelledby="tab-overview" tabindex="-1">
+<!-- ─────────────────────────────  what it does  ───────────────────────────── -->
+<div class="group" id="what">
+<div class="wrap"><h2 class="runhead"><span class="runhead__i">02</span>What it does</h2></div>
+
+<section class="section section--lead" id="intro">
+  <div class="wrap">
+    <p class="eyebrow" data-reveal>cell-level triage for leukemia screening</p>
+    <h2 class="h-section">
+      <span class="mask"><span>The cells that matter most,</span></span>
+      <span class="mask"><span>seen first.</span></span>
+    </h2>
+    <p class="subhead" data-reveal>Acute lymphoblastic leukemia is diagnosed by examining a blood
+      smear one cell at a time. This network ranks every cell by how closely it resembles a leukemic
+      lymphoblast, so the reviewer reaches the most suspicious ones sooner — running entirely in the
+      browser, with no image ever leaving the device.</p>
+  </div>
+</section>
 
 <!-- ─────────────────────────────  background  ───────────────────────────── -->
 <section class="statement" id="background">
@@ -187,7 +191,6 @@
 <!-- ─────────────────────────────  impact  ───────────────────────────── -->
 <section class="section" id="impact">
   <div class="wrap">
-    <p class="eyebrow" data-reveal>what it does</p>
     <h2 class="h-section">
       <span class="mask"><span>Same cells, same</span></span>
       <span class="mask"><span>reviewer, better order.</span></span>
@@ -208,12 +211,12 @@
   </div>
 </section>
 
-</section>
-
-
-<section class="panel" id="panel-results" role="tabpanel" aria-labelledby="tab-results" tabindex="-1">
+</div>
 
 <!-- ─────────────────────────────  results  ───────────────────────────── -->
+<div class="group" id="results">
+<div class="wrap"><h2 class="runhead"><span class="runhead__i">03</span>Results</h2></div>
+
 <section class="section" id="sec-results">
   <div class="wrap">
     <p class="eyebrow" data-reveal>measured on held-out patients</p>
@@ -221,6 +224,33 @@
       <span class="mask"><span>Eleven patients the</span></span>
       <span class="mask"><span>network had never seen.</span></span>
     </h2>
+
+    <!-- the specimen label and compact field, moved here from the old hero -->
+    <div class="plate">
+    <div class="specimen" role="group" aria-labelledby="specimen-h">
+      <p class="specimen__head" id="specimen-h"><span>held-out test set</span><span>subject-disjoint</span></p>
+      <dl>
+        <dt>dataset</dt>   <dd>C-NMC 2019 <span>· ISBI challenge, paediatric B-ALL</span></dd>
+        <dt>patients</dt>  <dd>11 test <span>· 51 train · 11 validation</span></dd>
+        <dt>cells</dt>     <dd>1,882 <span>· 1,094 leukemic · 788 normal</span></dd>
+        <dt>split</dt>     <dd>by patient, 70/15/15 <span>· seed</span> 42</dd>
+        <dt>threshold</dt> <dd>0.770 <span>· chosen on validation patients</span></dd>
+      </dl>
+    </div>
+
+    <figure class="minifield">
+      <canvas id="minifield" role="img"
+        aria-label="A small field of 1,882 marks, one per test cell, with the outcomes interspersed. Upper block, the 1,094 leukemic cells: 851 flagged and 243 missed. Lower block, the 788 normal cells: 36 falsely flagged and 752 cleared."></canvas>
+      <ul class="minifield__key">
+        <li><span class="key key--tp" aria-hidden="true"></span><b>851</b> flagged</li>
+        <li class="is-miss"><span class="key key--fn" aria-hidden="true"></span><b>243</b> missed</li>
+        <li><span class="key key--fp" aria-hidden="true"></span><b>36</b> false flags</li>
+        <li><span class="key key--tn" aria-hidden="true"></span><b>752</b> cleared</li>
+      </ul>
+      <figcaption>One mark per test cell. The full field, grouped by outcome, is
+      below.</figcaption>
+    </figure>
+    </div>
 
     <div class="stats">
       <div class="stat" data-reveal>
@@ -279,6 +309,8 @@
       <figcaption>Select a group to isolate it. Only 36 of the 788 healthy cells were flagged in
       error, which is what keeps the flagged list worth reading.</figcaption>
     </figure>
+    <p class="prose field__echo js-only" data-reveal>These are the same 1,882 cells from the
+    cover, now sorted by what happened to each.</p>
 
     <h3 class="h-sub" data-reveal>The confusion matrix</h3>
     <p class="tcaption" id="matrix-cap" data-reveal>Counts at the decision threshold of 0.770.
@@ -367,15 +399,15 @@
   </div>
 </section>
 
-</section>
+</div>
 
-
-<section class="panel" id="panel-method" role="tabpanel" aria-labelledby="tab-method" tabindex="-1">
+<!-- ─────────────────────────────  method  ───────────────────────────── -->
+<div class="group" id="method">
+<div class="wrap"><h2 class="runhead"><span class="runhead__i">04</span>Method</h2></div>
 
 <!-- ─────────────────────────────  method cards  ───────────────────────────── -->
 <section class="section" id="sec-method">
   <div class="wrap">
-    <p class="eyebrow" data-reveal>method</p>
     <h2 class="h-section">
       <span class="mask"><span>How it was built,</span></span>
       <span class="mask"><span>in nine decisions.</span></span>
@@ -478,86 +510,11 @@
   </div>
 </section>
 
-<!-- ─────────────────────────────  scope  ───────────────────────────── -->
-<section class="section" id="limits">
-  <div class="wrap">
-    <p class="eyebrow" data-reveal>scope</p>
-    <h2 class="h-section">
-      <span class="mask"><span>Where this applies,</span></span>
-      <span class="mask"><span>and where it doesn't.</span></span>
-    </h2>
-    <p class="subhead" data-reveal>Everything below is a boundary on what has actually been
-    measured. It is here so the results above can be read for what they are.</p>
+</div>
 
-    <div class="faq" data-reveal>
-      <details open><summary><span class="faq__i">01</span>
-        <span class="faq__q">Has it been validated clinically?</span>
-        <span class="faq__sign" aria-hidden="true"></span></summary>
-        <div class="faq__wrap"><div class="faq__inner">
-        <p>No. No prospective study, no reader study, no hospital, no regulatory review of any
-        kind. Nothing here establishes that it helps a real pathologist on a real case.</p>
-        </div></div></details>
-
-      <details open><summary><span class="faq__i">02</span>
-        <span class="faq__q">How many datasets has it seen?</span>
-        <span class="faq__sign" aria-hidden="true"></span></summary>
-        <div class="faq__wrap"><div class="faq__inner">
-        <p>One — C-NMC 2019. Performance on images from a different hospital, scanner, stain
-        protocol, or segmentation pipeline is unknown, and the split-by-patient result above is a
-        direct reminder of how much acquisition can matter.</p>
-        </div></div></details>
-
-      <details open><summary><span class="faq__i">03</span>
-        <span class="faq__q">Can it find cells in a whole slide?</span>
-        <span class="faq__sign" aria-hidden="true"></span></summary>
-        <div class="faq__wrap"><div class="faq__inner">
-        <p>No. The input has to be pre-segmented — individual cells, already cut out and
-        centred. Finding and isolating the cells is a separate problem this project does not
-        touch.</p>
-        </div></div></details>
-
-      <details open><summary><span class="faq__i">04</span>
-        <span class="faq__q">What about stain variation?</span>
-        <span class="faq__sign" aria-hidden="true"></span></summary>
-        <div class="faq__wrap"><div class="faq__inner">
-        <p>The images are colour-normalised; C-NMC ships that way. Raw slide images with their
-        real stain variation are a different distribution.</p>
-        </div></div></details>
-
-      <details open><summary><span class="faq__i">05</span>
-        <span class="faq__q">Which patients does it apply to?</span>
-        <span class="faq__sign" aria-hidden="true"></span></summary>
-        <div class="faq__wrap"><div class="faq__inner">
-        <p>Paediatric B-lineage only. The dataset is childhood B-cell ALL. T-lineage disease,
-        adult patients, and other malignancies are outside anything that was measured.</p>
-        </div></div></details>
-
-      <details open><summary><span class="faq__i">06</span>
-        <span class="faq__q">Can it say "this is not a cell"?</span>
-        <span class="faq__sign" aria-hidden="true"></span></summary>
-        <div class="faq__wrap"><div class="faq__inner">
-        <p>No. The two classes are the only two options. It cannot say "this is a neutrophil",
-        "this is a smudge cell", or "this image is not a cell". It sorts everything onto a
-        leukemic/normal axis, including things that belong on neither.</p>
-        </div></div></details>
-
-      <details open><summary><span class="faq__i">07</span>
-        <span class="faq__q">What does a cell it doesn't flag mean?</span>
-        <span class="faq__sign" aria-hidden="true"></span></summary>
-        <div class="faq__wrap"><div class="faq__inner">
-        <p>It means the model did not rank that cell highly — nothing more. At the published
-        threshold it flagged 851 of 1,094 leukemic cells, so an unflagged cell has not been
-        cleared of anything. This is a ranking aid for a reviewer who reads every cell, and it
-        only works as one.</p>
-        </div></div></details>
-    </div>
-  </div>
-</section>
-
-</section>
-
-
-<section class="panel" id="panel-demo" role="tabpanel" aria-labelledby="tab-demo" tabindex="-1">
+<!-- ─────────────────────────────  demo  ───────────────────────────── -->
+<div class="group" id="demo">
+<div class="wrap"><h2 class="runhead"><span class="runhead__i">05</span>Demo</h2></div>
 
 <!-- ─────────────────────────────  demo  ───────────────────────────── -->
 <section class="section" id="sec-demo">
@@ -656,13 +613,89 @@
   </div>
 </section>
 
+</div>
+
+<!-- ─────────────────────────────  scope  ───────────────────────────── -->
+<section class="section group" id="limits">
+  <div class="wrap">
+    <h2 class="runhead"><span class="runhead__i">06</span>Limits</h2>
+    <p class="eyebrow" data-reveal>scope</p>
+    <h2 class="h-section">
+      <span class="mask"><span>Where this applies,</span></span>
+      <span class="mask"><span>and where it doesn't.</span></span>
+    </h2>
+    <p class="subhead" data-reveal>Everything below is a boundary on what has actually been
+    measured. It is here so the results above can be read for what they are.</p>
+
+    <div class="faq" data-reveal>
+      <details open><summary><span class="faq__i">01</span>
+        <span class="faq__q">Has it been validated clinically?</span>
+        <span class="faq__sign" aria-hidden="true"></span></summary>
+        <div class="faq__wrap"><div class="faq__inner">
+        <p>No. No prospective study, no reader study, no hospital, no regulatory review of any
+        kind. Nothing here establishes that it helps a real pathologist on a real case.</p>
+        </div></div></details>
+
+      <details open><summary><span class="faq__i">02</span>
+        <span class="faq__q">How many datasets has it seen?</span>
+        <span class="faq__sign" aria-hidden="true"></span></summary>
+        <div class="faq__wrap"><div class="faq__inner">
+        <p>One — C-NMC 2019. Performance on images from a different hospital, scanner, stain
+        protocol, or segmentation pipeline is unknown, and the split-by-patient result above is a
+        direct reminder of how much acquisition can matter.</p>
+        </div></div></details>
+
+      <details open><summary><span class="faq__i">03</span>
+        <span class="faq__q">Can it find cells in a whole slide?</span>
+        <span class="faq__sign" aria-hidden="true"></span></summary>
+        <div class="faq__wrap"><div class="faq__inner">
+        <p>No. The input has to be pre-segmented — individual cells, already cut out and
+        centred. Finding and isolating the cells is a separate problem this project does not
+        touch.</p>
+        </div></div></details>
+
+      <details open><summary><span class="faq__i">04</span>
+        <span class="faq__q">What about stain variation?</span>
+        <span class="faq__sign" aria-hidden="true"></span></summary>
+        <div class="faq__wrap"><div class="faq__inner">
+        <p>The images are colour-normalised; C-NMC ships that way. Raw slide images with their
+        real stain variation are a different distribution.</p>
+        </div></div></details>
+
+      <details open><summary><span class="faq__i">05</span>
+        <span class="faq__q">Which patients does it apply to?</span>
+        <span class="faq__sign" aria-hidden="true"></span></summary>
+        <div class="faq__wrap"><div class="faq__inner">
+        <p>Paediatric B-lineage only. The dataset is childhood B-cell ALL. T-lineage disease,
+        adult patients, and other malignancies are outside anything that was measured.</p>
+        </div></div></details>
+
+      <details open><summary><span class="faq__i">06</span>
+        <span class="faq__q">Can it say "this is not a cell"?</span>
+        <span class="faq__sign" aria-hidden="true"></span></summary>
+        <div class="faq__wrap"><div class="faq__inner">
+        <p>No. The two classes are the only two options. It cannot say "this is a neutrophil",
+        "this is a smudge cell", or "this image is not a cell". It sorts everything onto a
+        leukemic/normal axis, including things that belong on neither.</p>
+        </div></div></details>
+
+      <details open><summary><span class="faq__i">07</span>
+        <span class="faq__q">What does a cell it doesn't flag mean?</span>
+        <span class="faq__sign" aria-hidden="true"></span></summary>
+        <div class="faq__wrap"><div class="faq__inner">
+        <p>It means the model did not rank that cell highly — nothing more. At the published
+        threshold it flagged 851 of 1,094 leukemic cells, so an unflagged cell has not been
+        cleared of anything. This is a ranking aid for a reviewer who reads every cell, and it
+        only works as one.</p>
+        </div></div></details>
+    </div>
+  </div>
 </section>
 
-
 <!-- ─────────────────────────────  closing  ───────────────────────────── -->
-<footer class="cta" id="credits">
+<footer class="cta group" id="credits">
   <div class="wrap">
-    <p class="eyebrow" data-reveal>credits</p>
+    <h2 class="runhead"><span class="runhead__i">07</span>Credits</h2>
     <h2 class="h-statement">
       <span class="mask"><span>Screening support</span></span>
       <span class="mask"><span>that runs anywhere</span></span>
@@ -685,18 +718,24 @@
 
     <div class="credits" data-reveal>
       <p class="wordmark">Astraea Health</p>
-      <p class="credits__names">Aniketh&nbsp;Guttikonda &nbsp;·&nbsp; Eugene&nbsp;Choi</p>
+      <p class="credits__names"><span>Aniketh&nbsp;Guttikonda, Founder</span>
+      <span>Eugene&nbsp;Choi</span></p>
       <p class="colophon">Built while in high school. The dataset is C-NMC 2019, released for
       the ISBI 2019 challenge; we did not collect it. The model, the split, and the evaluation
       are ours. No tracking, no analytics, no cookies — the demo runs entirely in your
       browser.</p>
+      <p class="citation">Data: Mourya, S., Kant, S., Kumar, P., Gupta, A., &amp; Gupta, R.
+      (2019). <i>ALL Challenge dataset of ISBI 2019 (C-NMC 2019)</i> (Version 1) [Data set].
+      The Cancer Imaging Archive.
+      <a href="https://doi.org/10.7937/tcia.2019.dc64i46r">doi.org/10.7937/tcia.2019.dc64i46r</a>.
+      Used under CC BY 3.0.</p>
     </div>
   </div>
 </footer>
 
 </main>
 
-<script defer src="tabs.js"></script>
+<script defer src="nav.js"></script>
 <script defer src="app.js"></script>
 </body>
 </html>

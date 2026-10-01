@@ -1,8 +1,8 @@
 /* ============================================================================
    figures.js — the three drawings, loaded on demand.
 
-   Imported with dynamic import() the first time the panel that owns a figure
-   is activated, so none of this is parsed or run on initial load:
+   Imported with dynamic import() once the document has parsed, so none of it
+   blocks first paint:
      Results  the 1,882-mark cell field and the ROC curve
      Method   the split schematic
 
@@ -40,8 +40,8 @@ const C = {
   steel:  cssVar('--steel',     '#3D5A6C'),
   faint:  cssVar('--ink-faint', 'rgba(46,26,61,.16)'),
   ink:    cssVar('--ink',       '#2E1A3D'),
-  soft:   cssVar('--ink-note',  'rgba(46,26,61,.68)'),
-  rule:   cssVar('--rule',      'rgba(46,26,61,.12)'),
+  soft:   cssVar('--ink-note',  '#6A5A76'),
+  rule:   cssVar('--rule',      '#D8C9D3'),
   firm:   cssVar('--rule-bold', 'rgba(46,26,61,.28)'),
   paper:  cssVar('--paper',     '#F7F2F4')
 };
@@ -189,20 +189,16 @@ export function mountCellField () {
     if (entries[0].isIntersecting) { play(); obs.disconnect(); }
   }, { threshold: 0.15 }).observe(cv);
 
-  /* A panel that is not on screen has zero width, so laying out while it is
-     hidden would size the canvas to nothing and blank the field -- and
-     mounting is one-shot, so it would never come back. Skip those, and catch
-     up when the panel is shown again. layout() rebuilds the dots without
-     touching progress, so re-running it redraws the same field. */
+  /* A parent with zero width (print layout, a collapsed window) would size
+     the canvas to nothing and blank the field -- and mounting is one-shot,
+     so skip those and catch up on the next resize. layout() rebuilds the
+     dots without touching progress, so re-running it redraws the same field. */
   const relayout = () => { if (cv.parentElement.clientWidth) { layout(); draw(); } };
 
   let rAF;
   window.addEventListener('resize', () => {
     cancelAnimationFrame(rAF);
     rAF = requestAnimationFrame(relayout);
-  });
-  document.addEventListener('panel:show', e => {
-    if (e.detail && e.detail.id === 'results') requestAnimationFrame(relayout);
   });
 
   /* Legend doubles as the isolation control. */
