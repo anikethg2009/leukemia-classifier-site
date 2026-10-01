@@ -47,7 +47,7 @@
   });
 
   /* widening past the breakpoint with the menu open would leave it stuck */
-  const narrow = window.matchMedia('(max-width: 759.98px)');
+  const narrow = window.matchMedia('(max-width: 899.98px)');
   const onWidth = () => { if (!narrow.matches) setOpen(false); };
   if (narrow.addEventListener) narrow.addEventListener('change', onWidth);
   else if (narrow.addListener) narrow.addListener(onWidth);

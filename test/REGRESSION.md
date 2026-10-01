@@ -43,7 +43,7 @@ python test/make_fixture.py     # rewrites it and verifies the hash, exit 1 on m
 
 ## Running it
 
-Serve the repo root and open the page. Then, in the Demo tab:
+Serve the repo root and open `index.html`. Then, in the Demo section:
 
 1. Tick the acknowledgement. The load button and the file input are `disabled`
    in the markup, so this gate holds with JavaScript off too -- neither
@@ -62,9 +62,17 @@ against the Python reference above.
 A changed score means something in the inference path moved. Check, in order:
 
 - `models/model.onnx` -- byte size and whether it was re-exported or re-quantised
-- the BGR channel order and the mean subtraction in `app.js`
+- the BGR channel order and the mean subtraction in `demo.js`
 - the `1 - output` mapping (class index 1 is `normal`)
-- `THRESHOLD` in `app.js`, which is 0.770 and drives both the verdict and the
+- `THRESHOLD` in `demo.js`, which is 0.770 and drives both the verdict and the
   meter marker
 
-Re-verify after any change touching `app.js`, the model file, or preprocessing.
+Re-verify after any change touching `demo.js`, the model file, or preprocessing.
+
+## History
+
+When the site split into two pages (October 2026), the demo code moved out of
+`app.js` into `demo.js` unchanged. The preprocessing path, the `1 - output`
+mapping and `THRESHOLD` were copied byte-for-byte, so the fixture score should
+be identical to the figures above, and it was: browser 0.8126997, Python
+0.8124375.

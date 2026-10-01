@@ -193,6 +193,10 @@ a.btn,a.btn-ghost{ border-bottom-width:1px; }
             letter-spacing:-.01em; color:var(--ink); border-bottom:0; white-space:nowrap; }
 .nav__list{ list-style:none; margin:0 -.85rem 0 0; padding:0; display:flex; height:var(--nav-h); }
 .nav__list li{ display:flex; }
+/* a hairline between this page's links and the other page's */
+.nav__split{ position:relative; margin-left:.85rem; }
+.nav__split::before{ content:''; position:absolute; left:-.43rem; top:50%; height:14px;
+  margin-top:-7px; width:1px; background:var(--rule-bold); }
 /* Nav labels are primary navigation set small, so they take --ink-soft
    (6.96:1 on paper), not --ink-note. */
 .nav__list a{ position:relative; display:inline-flex; align-items:center; padding:0 .85rem;
@@ -213,7 +217,7 @@ a.btn,a.btn-ghost{ border-bottom-width:1px; }
 .nav__toggle:hover{ border-color:var(--ink); }
 .nav__toggle[aria-expanded="true"]{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
 
-@media (max-width:759.98px){
+@media (max-width:899.98px){
   :root{ --nav-h:52px; }
   .js .nav__toggle{ display:inline-flex; align-items:center; }
   /* closed, the list is display:none, so its links leave the tab order */
@@ -224,6 +228,9 @@ a.btn,a.btn-ghost{ border-bottom-width:1px; }
   .js .nav__list a{ height:48px; padding:0; width:100%; font-size:.8125rem;
     border-bottom:1px solid var(--hairline); }
   .js .nav__list li:last-child a{ border-bottom:0; }
+  /* in the column, the split is a gap and a firmer rule, not a tick */
+  .js .nav__split{ margin:.6rem 0 0; border-top:1px solid var(--rule-bold); }
+  .js .nav__split::before{ display:none; }
   .js .nav__list a::after{ left:0; right:auto; width:2rem; bottom:10px; }
   /* without JS there is no menu button: the links wrap under the wordmark
      and the bar stops being sticky, since its height is no longer --nav-h */
@@ -233,40 +240,98 @@ a.btn,a.btn-ghost{ border-bottom-width:1px; }
   html:not(.js) .nav__list a{ height:40px; }
 }
 
-/* ══ cover ═══════════════════════════════════════════════════════════════
-   The first screen is a cover, not a summary: the name, one sentence, one
-   way in, three quiet facts, and a field of uncoloured points. The points
-   carry no class colour, because on the cover they make no claim; Results
-   shows the same 1,882 cells sorted and coloured.
+/* ══ loading screen ══════════════════════════════════════════════════════
+   The wordmark on paper, and nothing else. It exists only under .js, so
+   with scripts off it is never drawn. The head script raises .is-loading
+   before first paint and guarantees it is lowered within 3 s; cover.js
+   lowers it sooner, on the cell's first frame. pointer-events:none means
+   that even mid-fade it cannot catch a click.
    ═════════════════════════════════════════════════════════════════════ */
-.cover{ position:relative; min-height:calc(100vh - var(--nav-h));
-        min-height:calc(100svh - var(--nav-h)); overflow:hidden; }
+.loader{ display:none; }
+.js .loader{ display:flex; position:fixed; inset:0; z-index:300; align-items:center;
+  justify-content:center; background:var(--paper); pointer-events:none;
+  opacity:0; visibility:hidden; transition:opacity .6s var(--ease), visibility 0s linear .6s; }
+.js.is-loading .loader{ opacity:1; visibility:visible; transition:none; }
+.loader__mark{ margin:0; font-family:var(--display); font-size:clamp(1.6rem,3vw,2.2rem);
+  font-weight:400; letter-spacing:-.02em; color:var(--ink); }
+@media (prefers-reduced-motion:reduce){ .js .loader{ transition:none; } }
+
+/* ══ cover ═══════════════════════════════════════════════════════════════
+   A tall cover with a sticky stage. The page scrolls at its own speed; the
+   stage simply stays in view while three panels of type pass over it, and
+   cover.js reads how far through the cover the visitor is to move the cell.
+   The canvas holds only transmitted light (white where there is no cell)
+   and is multiplied onto the page, so its background is the page itself.
+   Without JS there is no stage: the panels are plain text in order.
+   ═════════════════════════════════════════════════════════════════════ */
+.cover{ position:relative; }
+.cover__stage{ display:none; }
+/* The stage paints its own paper and isolates the blend: multiply has to
+   find the paper inside the stage, because the body's background is
+   propagated to the viewport and is not a backdrop the canvas can see. */
+.js .cover__stage{ display:block; position:sticky; top:var(--nav-h); background:var(--paper);
+  isolation:isolate;
+  height:calc(100vh - var(--nav-h)); height:calc(100svh - var(--nav-h)); overflow:hidden; }
+.cover__cell,.cover__field{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+.cover__cell{ mix-blend-mode:multiply; }
 .cover__field{ display:none; }
-.js .cover__field{ display:block; position:absolute; top:0; left:42%;
-                   width:58%; height:100%; }
-.cover__wrap{ position:relative; z-index:1; min-height:inherit; display:flex;
-              flex-direction:column; padding-top:4rem; padding-bottom:2.5rem; }
-.cover__main{ margin-top:auto; }
+.cover--field .cover__cell{ display:none; }
+.cover--field .cover__field{ display:block; left:42%; width:58%; }
+/* The caption that stops anyone reading the cell as a photograph. Always
+   visible while the cell is; hidden with it when the fallback field draws. */
+.cover__caption{ position:absolute; right:var(--pad); bottom:1.4rem; margin:0; max-width:30ch;
+  font-family:var(--mono); font-size:.6875rem; letter-spacing:.04em; line-height:1.5;
+  color:var(--ink-note); background:var(--paper); padding:.35rem .6rem; text-align:right; }
+.cover--field .cover__caption{ display:none; }
+
+.cover__panel{ padding:4rem 0; }
+.js .cover__panels{ position:relative; z-index:1;
+  margin-top:calc(-1 * (100vh - var(--nav-h))); margin-top:calc(-1 * (100svh - var(--nav-h))); }
+.js .cover__panel{ min-height:75vh; min-height:75svh; display:flex; align-items:center; padding:0;
+  will-change:opacity; }
+.js .cover__panel--a{ min-height:calc(100vh - var(--nav-h)); min-height:calc(100svh - var(--nav-h));
+  align-items:flex-end; padding-bottom:7rem; }
+.js .cover__panel--c{ min-height:calc(75svh + 0px); }
+.cover__panel .wrap{ width:100%; }
+.cover__panel .wrap > *{ max-width:34rem; }
+
 .cover__name{ font-family:var(--display); font-weight:400; font-size:clamp(3.25rem,9.5vw,8.75rem);
-  line-height:.92; letter-spacing:-.035em; color:var(--ink); margin:0; }
+  line-height:.92; letter-spacing:-.035em; color:var(--ink); margin:0; max-width:none !important; }
 .cover__name span{ display:block; }
 .cover__line{ margin:2.2rem 0 0; max-width:34ch; font-size:clamp(1.2rem,1.9vw,1.55rem);
   line-height:1.45; color:var(--ink-soft); }
+.cover__beat{ margin:0; font-family:var(--display); font-size:clamp(1.6rem,3.2vw,2.6rem);
+  line-height:1.2; letter-spacing:-.015em; color:var(--ink); max-width:20ch; }
 .cover .btn-row{ margin-top:2.4rem; }
-.cover__facts{ list-style:none; margin:clamp(3rem,10vh,7rem) 0 0; padding:1.3rem 0 0;
-  border-top:1px solid var(--hairline); max-width:36rem;
-  font-family:var(--mono); font-size:.75rem; font-weight:400; letter-spacing:.06em;
+.cover__foot{ margin:3rem 0 0; font-family:var(--mono); font-size:.75rem; letter-spacing:.06em;
   text-transform:uppercase; line-height:1.5; color:var(--ink-note); }
-.cover__facts li + li{ margin-top:.45rem; }
 
 @media (max-width:759.98px){
-  /* the field becomes a band across the top, the type sits below it */
-  .js .cover__field{ left:0; width:100%; height:36svh; }
-  .js .cover__wrap{ padding-top:calc(36svh + 1rem); }
-  .cover__line{ margin-top:1.6rem; }
-  .cover .btn-row{ margin-top:1.8rem; }
-  .cover__facts{ margin-top:2.5rem; }
+  /* the cell sits in the upper part of the stage; type sits below it */
+  .js .cover__panel{ align-items:flex-end; padding-bottom:5.5rem; }
+  .js .cover__panel--a{ padding-bottom:4.5rem; }
+  .cover--field .cover__field{ left:0; width:100%; height:42%; }
+  /* on phones the type fills the bottom of the stage, so the caption sits
+     at the top, beside the cell it describes */
+  .cover__caption{ left:var(--pad); right:auto; text-align:left; top:.8rem; bottom:auto; }
+  .cover__line{ margin-top:1.4rem; }
 }
+@media (prefers-reduced-motion:reduce){
+  /* no crossfades: every panel stays fully visible */
+  .js .cover__panel{ opacity:1 !important; }
+}
+
+/* ══ onward ══════════════════════════════════════════════════════════════ */
+.onward .miss-line{ margin-top:0; }
+.onward__text{ margin:2rem 0 0; max-width:52ch; font-size:1.1rem; line-height:1.6;
+  color:var(--ink-sub); }
+
+/* ══ research page ═══════════════════════════════════════════════════════ */
+.research__head .wrap{ padding-top:5rem; padding-bottom:4rem; }
+.research__title{ font-family:var(--display); font-weight:400; margin:0;
+  font-size:clamp(2.4rem,5vw,4.5rem); line-height:1; letter-spacing:-.03em; max-width:16ch; }
+#background > .wrap:first-child + .statement{ border-top:0; }
+#background > .wrap:first-child{ padding-bottom:3rem; }
 
 /* ══ groups and running heads ════════════════════════════════════════════
    Each nav destination is a group, opened by a running head: an index and
@@ -351,7 +416,6 @@ a.btn,a.btn-ghost{ border-bottom-width:1px; }
   .plate{ grid-template-columns:minmax(0,1fr); }
   .plate .specimen{ max-width:560px; }
 }
-.field__echo{ margin-top:1.4rem !important; }
 
 /* ── statement band ──────────────────────────────────────────────────────── */
 .statement{ background:var(--paper-2); border-top:1px solid var(--rule); }
@@ -734,8 +798,9 @@ html.js-anim .disclaimer [data-reveal]{
 }
 
 @media print{
-  .nav,.cover__field{ display:none !important; }
-  .cover{ min-height:0 !important; }
+  .nav,.loader,.cover__stage{ display:none !important; }
+  .cover__panels{ margin-top:0 !important; }
+  .cover__panel{ opacity:1 !important; min-height:0 !important; }
   /* a section the reader never scrolled to never had its observer fire, so
      without this every reveal in it would print at opacity 0 */
   html.js-anim [data-reveal],

@@ -17,7 +17,7 @@ evidence; the other two do not.
 | Model actually caches, and is served from cache | **not verified** |
 | Version key evicts the previous version | **not verified** |
 
-Relevant constants in `app.js`:
+Relevant constants in `demo.js`:
 
 ```js
 const CACHE_NAME  = 'alln-weights-v1';
@@ -57,7 +57,7 @@ Load should be noticeably faster, and the demo should still score
 
 ## 3. The version key evicts the old version
 
-1. With a cache populated, edit `CACHE_NAME` in `app.js` to
+1. With a cache populated, edit `CACHE_NAME` in `demo.js` to
    `alln-weights-v2`.
 2. Hard-reload, then load the model again.
 

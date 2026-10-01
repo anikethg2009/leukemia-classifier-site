@@ -144,7 +144,7 @@ the demo errors on load.
 
 Threading is **not** a concern here. GitHub Pages cannot set the `COOP`/`COEP`
 headers that `SharedArrayBuffer` requires, so a threaded runtime would fall
-back to one thread anyway — but `app.js` already pins `ort.env.wasm.numThreads
+back to one thread anyway — but `demo.js` already pins `ort.env.wasm.numThreads
 = 1` explicitly, so Pages and localhost run the identical single-threaded path.
 This is the usual localhost-versus-Pages trap, and it does not apply.
 
