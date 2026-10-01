@@ -282,6 +282,9 @@ a.btn,a.btn-ghost{ border-bottom-width:1px; }
    the dark ROC band and needs paper of its own before its rule. */
 .group > .wrap:first-child{ padding-top:0; }
 #method > .wrap:first-child{ padding-top:7rem; }
+/* While Why is hidden, What it does follows the cover directly, which ends
+   in only 2.5rem of paper. Reverts by itself when Why is shown again. */
+.why[hidden] + .group > .wrap:first-child{ padding-top:7rem; }
 .group > .wrap:first-child + .section{ border-top:0; padding-top:5rem; }
 #limits.group{ padding-top:0; border-top:0; }
 #limits.group .runhead,.cta.group .runhead{ margin-bottom:5rem; }
@@ -301,7 +304,8 @@ a.btn,a.btn-ghost{ border-bottom-width:1px; }
 @media (max-width:820px){
   .why .wrap{ padding-bottom:8rem; }
   .why__body{ margin-top:6rem; }
-  #method > .wrap:first-child,.cta.group .wrap{ padding-top:4.5rem; }
+  #method > .wrap:first-child,.cta.group .wrap,
+  .why[hidden] + .group > .wrap:first-child{ padding-top:4.5rem; }
   .group > .wrap:first-child + .section{ padding-top:3.5rem; }
   #limits.group .runhead,.cta.group .runhead{ margin-bottom:3.5rem; }
 }

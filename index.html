@@ -96,7 +96,7 @@
       aria-expanded="false" aria-controls="navList" hidden>Menu</button>
     <nav class="nav__nav" aria-label="Sections">
       <ul class="nav__list" id="navList">
-        <li><a href="#why">Why</a></li>
+        <li hidden><a href="#why">Why</a></li><!-- hidden until the Why text is supplied -->
         <li><a href="#what">What it does</a></li>
         <li><a href="#results">Results</a></li>
         <li><a href="#method">Method</a></li>
@@ -119,7 +119,7 @@
       <p class="cover__line">It puts microscope images of single blood cells in order, so the
       person checking them sees the most leukemia-like cells first.</p>
       <div class="btn-row">
-        <a class="btn" href="#why">Read on</a>
+        <a class="btn" href="#what">Read on</a>
       </div>
     </div>
     <ul class="cover__facts">
@@ -130,8 +130,11 @@
   </div>
 </header>
 
-<!-- ─────────────────────────────  why  ───────────────────────────── -->
-<section class="group why" id="why">
+<!-- ─────────────────────────────  why  ─────────────────────────────
+     Hidden until the text is supplied. To restore: remove `hidden` here and
+     on the Why nav item, point "Read on" back at #why, and renumber the
+     running heads 01–07. -->
+<section class="group why" id="why" hidden>
   <div class="wrap">
     <h2 class="runhead"><span class="runhead__i">01</span>Why</h2>
     <div class="why__body">
@@ -142,7 +145,7 @@
 
 <!-- ─────────────────────────────  what it does  ───────────────────────────── -->
 <div class="group" id="what">
-<div class="wrap"><h2 class="runhead"><span class="runhead__i">02</span>What it does</h2></div>
+<div class="wrap"><h2 class="runhead"><span class="runhead__i">01</span>What it does</h2></div>
 
 <section class="section section--lead" id="intro">
   <div class="wrap">
@@ -215,7 +218,7 @@
 
 <!-- ─────────────────────────────  results  ───────────────────────────── -->
 <div class="group" id="results">
-<div class="wrap"><h2 class="runhead"><span class="runhead__i">03</span>Results</h2></div>
+<div class="wrap"><h2 class="runhead"><span class="runhead__i">02</span>Results</h2></div>
 
 <section class="section" id="sec-results">
   <div class="wrap">
@@ -403,7 +406,7 @@
 
 <!-- ─────────────────────────────  method  ───────────────────────────── -->
 <div class="group" id="method">
-<div class="wrap"><h2 class="runhead"><span class="runhead__i">04</span>Method</h2></div>
+<div class="wrap"><h2 class="runhead"><span class="runhead__i">03</span>Method</h2></div>
 
 <!-- ─────────────────────────────  method cards  ───────────────────────────── -->
 <section class="section" id="sec-method">
@@ -514,7 +517,7 @@
 
 <!-- ─────────────────────────────  demo  ───────────────────────────── -->
 <div class="group" id="demo">
-<div class="wrap"><h2 class="runhead"><span class="runhead__i">05</span>Demo</h2></div>
+<div class="wrap"><h2 class="runhead"><span class="runhead__i">04</span>Demo</h2></div>
 
 <!-- ─────────────────────────────  demo  ───────────────────────────── -->
 <section class="section" id="sec-demo">
@@ -618,7 +621,7 @@
 <!-- ─────────────────────────────  scope  ───────────────────────────── -->
 <section class="section group" id="limits">
   <div class="wrap">
-    <h2 class="runhead"><span class="runhead__i">06</span>Limits</h2>
+    <h2 class="runhead"><span class="runhead__i">05</span>Limits</h2>
     <p class="eyebrow" data-reveal>scope</p>
     <h2 class="h-section">
       <span class="mask"><span>Where this applies,</span></span>
@@ -695,7 +698,7 @@
 <!-- ─────────────────────────────  closing  ───────────────────────────── -->
 <footer class="cta group" id="credits">
   <div class="wrap">
-    <h2 class="runhead"><span class="runhead__i">07</span>Credits</h2>
+    <h2 class="runhead"><span class="runhead__i">06</span>Credits</h2>
     <h2 class="h-statement">
       <span class="mask"><span>Screening support</span></span>
       <span class="mask"><span>that runs anywhere</span></span>
