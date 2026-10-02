@@ -25,7 +25,7 @@
      no WebGL, a failed
      compile, a lost context,
      a low-memory device, or
-     under 30 fps            the 2D cover field
+     a median frame > 40 ms  the 2D cover field
      no JavaScript           none of this runs; the cover is plain text
    The loading screen is cleared from here on the first frame of whichever
    of those draws, and by the head script after 3 s regardless.
@@ -226,16 +226,34 @@ function rotation (ay, ax) {
 const lerp = (a, b, t) => a + (b - a) * t;
 const ease = t => t * t * (3 - 2 * t);
 
+/* Why the cover is not showing the animated cell, for anyone checking
+   afterwards in the console. null while the animated cell is running.
+     webgl-unavailable   no WebGL2 or WebGL1 context could be created
+     low-memory          navigator.deviceMemory reports 2 GB or less
+     shader-error        compile or link failed; `detail` has the log
+     slow-device         post-warm-up median frame over the threshold;
+                         `medianMs` and `framesMs` have the measurement
+     context-lost        the GPU took the context back after it was live
+     reduced-motion      not a fallback to the field: one static frame of
+                         the cell is drawn and nothing moves */
+window.__coverFallback = null;
+const fallback = (reason, extra) => {
+  window.__coverFallback = Object.assign({ reason }, extra || {});
+  return false;
+};
+
 function startCell () {
-  if (!cellCv || !stage) return false;
+  if (!cellCv || !stage) return fallback('webgl-unavailable', { detail: 'no stage in the page' });
   /* very small devices get the field rather than a struggling shader */
-  if (navigator.deviceMemory && navigator.deviceMemory <= 2) return false;
+  if (navigator.deviceMemory && navigator.deviceMemory <= 2) {
+    return fallback('low-memory', { deviceMemory: navigator.deviceMemory });
+  }
 
   const opts = { antialias: false, depth: false, stencil: false, alpha: false,
                  premultipliedAlpha: false, preserveDrawingBuffer: false,
                  powerPreference: 'low-power' };
   const gl = cellCv.getContext('webgl2', opts) || cellCv.getContext('webgl', opts);
-  if (!gl) return false;
+  if (!gl) return fallback('webgl-unavailable');
 
   const phone = window.matchMedia('(max-width: 759.98px)').matches;
   const STEPS = phone ? 28 : 48;
@@ -258,7 +276,7 @@ function startCell () {
     gl.linkProgram(prog);
     if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog) || 'link');
   } catch (e) {
-    return false;
+    return fallback('shader-error', { detail: String(e && e.message || e) });
   }
   gl.useProgram(prog);
 
@@ -310,7 +328,7 @@ function startCell () {
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   }
 
-  if (!size()) return false;
+  if (!size()) return fallback('webgl-unavailable', { detail: 'canvas has no size' });
 
   root.classList.add('cover--cell');
 
@@ -333,39 +351,63 @@ function startCell () {
     requestAnimationFrame(() => { queued = false; frame(); });
   };
 
-  /* ── the 30 fps check ────────────────────────────────────────────────────
-     Draw a run of frames across the scroll range, one per animation frame,
-     and time the intervals between them. A GPU that cannot finish a frame
-     holds the next one back, so slow rendering shows up here without a
-     readPixels stall. The first two intervals carry shader compilation and
-     are not counted. Over 33 ms on average and the 2D field takes over
-     before anyone has watched the cell stutter. */
-  const PROBE = 8;
-  let n = 0, tPrev = 0, sum = 0, counted = 0;
-  function probe (now) {
-    if (n > 0 && n > 2) { sum += now - tPrev; counted++; }
-    tPrev = now;
-    if (n < PROBE) {
-      render(n / (PROBE - 1));
-      n++;
-      requestAnimationFrame(probe);
-      return;
-    }
-    const ms = sum / Math.max(1, counted);
-    window.__cellFrameMs = ms;                 /* read by the verification run */
-    if (ms > 33) {
-      const lose = gl.getExtension('WEBGL_lose_context');
-      root.classList.remove('cover--cell');
-      if (lose) lose.loseContext();
-      drawField();
-      return;
-    }
+  function goLive () {
     live = true;
     frame();
     loaderDone();
     if (!REDUCED) window.addEventListener('scroll', queue, { passive: true });
   }
-  requestAnimationFrame(probe);
+
+  /* Reduced motion draws one frame and never another, so there is nothing
+     to keep up with and no reason to measure. */
+  if (REDUCED) {
+    window.__coverFallback = { reason: 'reduced-motion', mode: 'cell-static' };
+    goLive();
+  } else {
+    /* ── the frame-time check ─────────────────────────────────────────────
+       Times the GPU, not the display. Each probe frame is drawn and then
+       waited on with a one-pixel readPixels, so the time measured is the
+       work for that frame alone; it does not depend on the refresh rate, on
+       Chrome capping a page at 30 fps in Energy Saver, or on what else the
+       main thread is doing while the page loads.
+
+       The program is already compiled and linked above. Many drivers (ANGLE
+       on D3D11 among them) still finish compiling on the first draw, so two
+       warm-up frames are drawn and waited on first and then thrown away.
+       Seven frames across the scroll range are timed after that, one per
+       animation frame, and the median decides, so a single stalled frame
+       cannot trip it. Over 40 ms (25 fps), and the field takes over before
+       anyone has watched the cell stutter. */
+    const px = new Uint8Array(4);
+    const flush = () => gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+    const timed = p => { const t = performance.now(); render(p); flush(); return performance.now() - t; };
+    const LIMIT_MS = 40, TIMED = 7;
+    const warmupMs = [], framesMs = [];
+
+    requestAnimationFrame(() => {
+      warmupMs.push(timed(0), timed(0.5));        /* discarded */
+      let k = 0;
+      requestAnimationFrame(function probe () {
+        framesMs.push(timed(k / (TIMED - 1)));
+        if (++k < TIMED) { requestAnimationFrame(probe); return; }
+        const sorted = framesMs.slice().sort((a, b) => a - b);
+        const medianMs = sorted[(TIMED - 1) / 2];
+        const round = a => a.map(v => +v.toFixed(1));
+        window.__coverProbe = { warmupMs: round(warmupMs), framesMs: round(framesMs),
+                                medianMs: +medianMs.toFixed(1), limitMs: LIMIT_MS };
+        window.__cellFrameMs = medianMs;          /* read by the verification run */
+        if (medianMs > LIMIT_MS) {
+          fallback('slow-device', { medianMs: +medianMs.toFixed(1), framesMs: round(framesMs), limitMs: LIMIT_MS });
+          root.classList.remove('cover--cell');
+          const lose = gl.getExtension('WEBGL_lose_context');
+          if (lose) lose.loseContext();
+          drawField();
+          return;
+        }
+        goLive();
+      });
+    });
+  }
 
   window.addEventListener('resize', () => {
     requestAnimationFrame(() => { if (live && size()) { last = -1; frame(); fadePanels(); } });
@@ -376,6 +418,7 @@ function startCell () {
     e.preventDefault();
     if (!live) return;                          /* the probe gave it up on purpose */
     live = false;
+    fallback('context-lost');
     root.classList.remove('cover--cell');
     window.removeEventListener('scroll', queue);
     drawField();
