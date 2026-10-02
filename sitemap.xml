@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Two pages: the landing page with the demo, and the research page.
+<!-- Three pages: the landing page, the research page and the demo.
      Section anchors within them are not separate URLs and do not belong here.
-     Change both <loc> lines if the site moves to another domain. -->
+     Change all three <loc> lines if the site moves to another domain. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://astraeahealth.org/</loc>
@@ -11,6 +11,12 @@
   </url>
   <url>
     <loc>https://astraeahealth.org/research.html</loc>
+    <lastmod>2026-10-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://astraeahealth.org/demo.html</loc>
     <lastmod>2026-10-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>

@@ -35,37 +35,33 @@ const cssVar = (name, fallback) => {
 };
 
 const C = {
-  violet: cssVar('--violet',    '#56287E'),
-  rose:   cssVar('--rose',      '#B03A5B'),
-  steel:  cssVar('--steel',     '#3D5A6C'),
-  faint:  cssVar('--ink-faint', 'rgba(46,26,61,.16)'),
-  ink:    cssVar('--ink',       '#2E1A3D'),
-  soft:   cssVar('--ink-note',  '#6A5A76'),
-  rule:   cssVar('--rule',      '#D8C9D3'),
-  firm:   cssVar('--rule-bold', 'rgba(46,26,61,.28)'),
-  paper:  cssVar('--paper',     '#F7F2F4')
+  violet: cssVar('--violet',    '#9A72D8'),
+  rose:   cssVar('--rose',      '#F4A3B9'),
+  steel:  cssVar('--steel',     '#7FA4BC'),
+  faint:  cssVar('--ink-faint', 'rgba(238,231,241,.22)'),
+  ink:    cssVar('--ink',       '#EEE7F1'),
+  soft:   cssVar('--ink-note',  '#9686A4'),
+  rule:   cssVar('--hairline',  '#3B2D48'),
+  firm:   cssVar('--rule-bold', '#5A4A68'),
+  paper:  cssVar('--ground',    '#120B19')
 };
 /* The split schematic highlights patient 07, which is neither a leukemic nor
    a normal call, so it is drawn in ink rather than borrowing a cell hue. */
 C.accent = C.ink;
 
-/* The ROC sits on the dark full-bleed band (the page ink, #2E1A3D), so its
-   text is light-on-dark and none of the tokens above apply. There is no token
-   for these; they exist only here. The curve is a light tint of the violet
-   (flagged) hue; the operating point is the paper colour, since it is a
-   setting rather than a cell. Measured against the band: tick and axis
-   labels 6.93:1, curve 7.76:1, operating-point and AUC labels 14.24:1.
-   If a band-local token set is ever added to
-   style.css, point these at it the same way C is pointed at the page tokens. */
+/* The ROC sits in a --ground panel inside the --band section. Its colours
+   are written out here rather than read from tokens, because the curve is a
+   tint of no token. Measured against #120B19: tick and axis labels (--ink-note)
+   5.74:1, curve 9.49:1, operating point and AUC label (--ink) 15.94:1. */
 const CD = {
   curve: '#C4ACE0',
-  mark:  '#F7F2F4',
-  ink:   '#F7F2F4',
-  soft:  'rgba(247,242,244,.66)',
-  rule:  'rgba(247,242,244,.12)',
-  firm:  'rgba(247,242,244,.28)',
-  panel: '#2E1A3D'
-};
+  mark:  '#EEE7F1',
+  ink:   '#EEE7F1',
+  soft:  '#9686A4',
+  rule:  'rgba(238,231,241,.10)',
+  firm:  'rgba(238,231,241,.26)',
+  panel: '#120B19'
+}
 
 /* Measured on 1,882 cells from 11 held-out patients. Read off the operating
    marker in roc.png (threshold 0.770, FPR 0.045 / TPR 0.778) against the

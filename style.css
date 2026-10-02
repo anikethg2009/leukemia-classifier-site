@@ -30,8 +30,8 @@
 /* ============================================================================
    Leukemic lymphoblast screening aid — slide-field build
 
-   A pale pink ground, like the empty field of a stained smear, with violet
-   ink at varying alpha. Three hues, and each one means exactly one thing:
+   A deep violet-black ground with pale ink, like a slide under darkfield
+   illumination. Three hues, and each one means exactly one thing:
      --violet  a leukemic cell the model flagged
      --rose    a missed call: a leukemic cell the model did not flag
      --steel   benign: a normal cell (here, one flagged in error)
@@ -42,37 +42,60 @@
    ========================================================================= */
 
 :root{
-  --paper:      #F7F2F4;
-  --paper-2:    #EFE6EB;
-  --ink:        #2E1A3D;
+  /* ── grounds ─────────────────────────────────────────────────────────────
+     A deep violet-black, flat everywhere. Gradients, haze and glow exist only
+     inside the rendered cover scene; no page surface carries a gradient, a
+     vignette or a shadow. --paper and --paper-2 are the old names for the two
+     main grounds and are kept so every rule that reads them follows along. */
+  --ground:     #120B19;
+  --band:       #221830;            /* statement band, ROC band, footer */
+  --raised:     #1A1123;            /* specimen label, demo frame, cards, open menu */
+  --paper:      var(--ground);
+  --paper-2:    var(--band);
 
-  --raised:     #FCF9FA;            /* specimen label, demo frame, cards, open menu */
-
-  --ink-sub:    rgba(46,26,61,.90);
-  /* Solid, not alpha: a translucent ink lands on a different colour over
-     every tint it crosses. Contrast, measured: --ink-soft 6.96:1 on paper,
-     7.36 on --raised, 6.30 on --paper-2. */
-  --ink-soft:   #5E4C6C;
-  /* --ink-note carries the figcaptions, table headers, small mono labels and
-     demo instructions, which is where most of the page's hedging lives, so it
-     has to clear AA on every ground it lands on: 5.68:1 on paper, 6.01 on
-     --raised, 5.15 on --paper-2, and above 4.5 on each confusion-matrix tint. */
-  --ink-note:   #6A5A76;
-  --ink-faint:  rgba(46,26,61,.16);
-  --hairline:   #D8C9D3;
+  /* ── ink ─────────────────────────────────────────────────────────────────
+     Measured (WCAG 2.x) on ground / raised / band:
+       --ink        #EEE7F1  15.94 / 15.10 / 13.97
+       --ink-sub    #DCD3E1  13.24 / 12.54 / 11.60
+       --ink-soft   #C6B9D0  10.35 /  9.80 /  9.06
+       --ink-note   #9686A4   5.74 /  5.44 /  5.03, and at least 4.6 on each
+                             confusion-matrix tint below
+       --ink-quiet  #9282A0   5.45 on ground, 4.77 on band: the cover's corner
+                             annotations and the illustration credit. Those sit
+                             over the rendered scene, where haze and the out-of-
+                             focus cells lift the ground to about #231A2F at
+                             worst; this is the quietest ink that still clears
+                             AA against the brightest pixel behind any of them
+                             (one step darker, #8A7A98, measured 4.40 there) */
+  --ink:        #EEE7F1;
+  --ink-sub:    #DCD3E1;
+  --ink-soft:   #C6B9D0;
+  --ink-note:   #9686A4;
+  --ink-quiet:  #9282A0;
+  --ink-faint:  rgba(238,231,241,.22);     /* "cleared" dots: deliberately faint, 1.8:1 */
+  --hairline:   #3B2D48;
   --rule:       var(--hairline);
-  --rule-bold:  rgba(46,26,61,.28);
+  --rule-bold:  #5A4A68;
 
-  --violet:      #56287E;
-  --violet-soft: rgba(86,40,126,.09);
-  --rose:        #B03A5B;
-  --rose-soft:   rgba(176,58,91,.10);
-  --steel:       #3D5A6C;
-  --steel-soft:  rgba(61,90,108,.10);
+  /* ── class hues ──────────────────────────────────────────────────────────
+     Same three meanings as ever, lifted to read on the dark ground:
+       --violet  a leukemic cell the model flagged      5.31 / 5.03 / 4.65
+       --steel   a normal cell (flagged in error)       7.30 / 6.91 / 6.40
+       --rose    a leukemic cell the model missed       9.92 / 9.39 / 8.69
+     They are spaced in brightness as well as hue (violet:steel 1.38,
+     steel:rose 1.36, violet:rose 1.87) so a reader who cannot separate the
+     hues can still separate the marks. The first attempt had violet and rose
+     at nearly equal brightness (1.06); do not let them drift back together. */
+  --violet:      #9A72D8;
+  --violet-soft: rgba(154,114,216,.12);
+  --rose:        #F4A3B9;
+  --rose-soft:   rgba(244,163,185,.12);
+  --steel:       #7FA4BC;
+  --steel-soft:  rgba(127,164,188,.12);
 
   /* structural colour is ink, never a cell hue */
   --accent:      var(--ink);
-  --accent-soft: rgba(46,26,61,.07);
+  --accent-soft: rgba(238,231,241,.06);
 
   --serif: 'Newsreader', Georgia, 'Times New Roman', serif;
   --mono:  'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -86,7 +109,7 @@
   --maxw: 1440px;
   --ease: cubic-bezier(.22,.61,.36,1);
 
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 *,*::before,*::after{ box-sizing:border-box; }
@@ -195,6 +218,12 @@ a.btn,a.btn-ghost{ border-bottom-width:1px; }
 .nav__list li{ display:flex; }
 /* a hairline between this page's links and the other page's */
 .nav__split{ position:relative; margin-left:.85rem; }
+/* Demo is the one destination you act on rather than read, so it sits apart
+   at the end of the bar, outlined */
+.nav__demo{ margin-left:1.2rem; align-items:center; }
+.nav__demo a{ height:32px; border:1px solid var(--rule-bold); color:var(--ink); padding:0 1rem; }
+.nav__demo a::after{ display:none; }
+.nav__demo a:hover,.nav__demo a[aria-current]{ border-color:var(--ink); }
 .nav__split::before{ content:''; position:absolute; left:-.43rem; top:50%; height:14px;
   margin-top:-7px; width:1px; background:var(--rule-bold); }
 /* Nav labels are primary navigation set small, so they take --ink-soft
@@ -230,6 +259,8 @@ a.btn,a.btn-ghost{ border-bottom-width:1px; }
   .js .nav__list li:last-child a{ border-bottom:0; }
   /* in the column, the split is a gap and a firmer rule, not a tick */
   .js .nav__split{ margin:.6rem 0 0; border-top:1px solid var(--rule-bold); }
+  .js .nav__demo{ margin:.6rem 0 0; }
+  .js .nav__demo a{ height:48px; border:0; border-top:1px solid var(--rule-bold); padding:0; }
   .js .nav__split::before{ display:none; }
   .js .nav__list a::after{ left:0; right:auto; width:2rem; bottom:10px; }
   /* without JS there is no menu button: the links wrap under the wordmark
@@ -257,68 +288,79 @@ a.btn,a.btn-ghost{ border-bottom-width:1px; }
 @media (prefers-reduced-motion:reduce){ .js .loader{ transition:none; } }
 
 /* ══ cover ═══════════════════════════════════════════════════════════════
-   A tall cover with a sticky stage. The page scrolls at its own speed; the
-   stage simply stays in view while three panels of type pass over it, and
-   cover.js reads how far through the cover the visitor is to move the cell.
-   The canvas holds only transmitted light (white where there is no cell)
-   and is multiplied onto the page, so its background is the page itself.
-   Without JS there is no stage: the panels are plain text in order.
+   The whole landing page. A sticky stage holds the rendered cell; the page
+   scrolls natively and cover.js reads how far through the cover it is. The
+   type is annotation pinned to the stage's corners: the wordmark and its
+   sentence bottom-left, the supporting lines in small mono at the edges,
+   the illustration credit bottom-right at footnote weight. Three labels on
+   thin pointer lines name the parts of the illustrated cell.
+
+   Everything atmospheric (haze, glow, the out-of-focus cells) is drawn
+   inside the canvas. The page surface itself is flat --ground.
+
+   Without JS the stage is an ordinary block: no canvas, no labels, and the
+   text stacks in reading order.
    ═════════════════════════════════════════════════════════════════════ */
 .cover{ position:relative; }
-.cover__stage{ display:none; }
-/* The stage paints its own paper and isolates the blend: multiply has to
-   find the paper inside the stage, because the body's background is
-   propagated to the viewport and is not a backdrop the canvas can see. */
-.js .cover__stage{ display:block; position:sticky; top:var(--nav-h); background:var(--paper);
-  isolation:isolate;
-  height:calc(100vh - var(--nav-h)); height:calc(100svh - var(--nav-h)); overflow:hidden; }
-.cover__cell,.cover__field{ position:absolute; inset:0; width:100%; height:100%; display:block; }
-.cover__cell{ mix-blend-mode:multiply; }
-.cover__field{ display:none; }
+.cover__stage{ position:relative; padding:4rem var(--pad) 3rem; }
+.cover__cell,.cover__field,.cover__pointers,.cover__parts{ display:none; }
+
+.js .cover{ height:170vh; height:170svh; }
+.js .cover__stage{ position:sticky; top:var(--nav-h); padding:0; overflow:hidden;
+  background:var(--ground);
+  height:calc(100vh - var(--nav-h)); height:calc(100svh - var(--nav-h)); }
+.js .cover__cell{ display:block; position:absolute; inset:0; width:100%; height:100%; }
+.js .cover__field{ position:absolute; top:0; left:42%; width:58%; height:100%; }
 .cover--field .cover__cell{ display:none; }
-.cover--field .cover__field{ display:block; left:42%; width:58%; }
-/* The caption that stops anyone reading the cell as a photograph. Always
-   visible while the cell is; hidden with it when the fallback field draws. */
-.cover__caption{ position:absolute; right:var(--pad); bottom:1.4rem; margin:0; max-width:30ch;
-  font-family:var(--mono); font-size:.6875rem; letter-spacing:.04em; line-height:1.5;
-  color:var(--ink-note); background:var(--paper); padding:.35rem .6rem; text-align:right; }
-.cover--field .cover__caption{ display:none; }
+.cover--field .cover__field{ display:block; }
 
-.cover__panel{ padding:4rem 0; }
-.js .cover__panels{ position:relative; z-index:1;
-  margin-top:calc(-1 * (100vh - var(--nav-h))); margin-top:calc(-1 * (100svh - var(--nav-h))); }
-.js .cover__panel{ min-height:75vh; min-height:75svh; display:flex; align-items:center; padding:0;
-  will-change:opacity; }
-.js .cover__panel--a{ min-height:calc(100vh - var(--nav-h)); min-height:calc(100svh - var(--nav-h));
-  align-items:flex-end; padding-bottom:7rem; }
-.js .cover__panel--c{ min-height:calc(75svh + 0px); }
-.cover__panel .wrap{ width:100%; }
-.cover__panel .wrap > *{ max-width:34rem; }
+/* the pointer lines and the three part labels, placed by cover.js on every
+   frame from the projected anatomy of the cell */
+.cover--cell .cover__pointers{ display:block; position:absolute; inset:0; width:100%; height:100%;
+  pointer-events:none; overflow:visible; }
+.cover__pointers line,.cover__pointers polyline{ stroke:var(--ink-quiet); stroke-width:1; fill:none; }
+.cover__pointers circle{ fill:var(--ink-soft); }
+.cover--cell .cover__parts{ display:block; list-style:none; margin:0; padding:0; }
+.cover__parts li{ position:absolute; left:0; top:0; margin:0; white-space:nowrap;
+  font-family:var(--mono); font-size:.6875rem; letter-spacing:.1em; text-transform:uppercase;
+  line-height:1; color:var(--ink-soft); will-change:transform; }
+.cover__parts li[hidden]{ display:none; }
 
-.cover__name{ font-family:var(--display); font-weight:400; font-size:clamp(3.25rem,9.5vw,8.75rem);
-  line-height:.92; letter-spacing:-.035em; color:var(--ink); margin:0; max-width:none !important; }
+/* type */
+.cover__name{ font-family:var(--display); font-weight:400; font-size:clamp(3rem,7.6vw,7.25rem);
+  line-height:.92; letter-spacing:-.035em; color:var(--ink); margin:0; }
 .cover__name span{ display:block; }
-.cover__line{ margin:2.2rem 0 0; max-width:34ch; font-size:clamp(1.2rem,1.9vw,1.55rem);
-  line-height:1.45; color:var(--ink-soft); }
-.cover__beat{ margin:0; font-family:var(--display); font-size:clamp(1.6rem,3.2vw,2.6rem);
-  line-height:1.2; letter-spacing:-.015em; color:var(--ink); max-width:20ch; }
-.cover .btn-row{ margin-top:2.4rem; }
-.cover__foot{ margin:3rem 0 0; font-family:var(--mono); font-size:.75rem; letter-spacing:.06em;
-  text-transform:uppercase; line-height:1.5; color:var(--ink-note); }
+.cover__line{ margin:1.6rem 0 0; max-width:34ch; font-size:clamp(1.05rem,1.45vw,1.3rem);
+  line-height:1.5; color:var(--ink-soft); }
+.cover .btn-row{ margin-top:1.8rem; }
+/* instrument readout: the supporting lines, in the quietest ink that
+   clears AA on the ground (--ink-quiet, 4.89:1) */
+.cover__note,.cover__credit{ margin:1.2rem 0 0; font-family:var(--mono); font-size:.6875rem;
+  font-weight:400; letter-spacing:.08em; text-transform:uppercase; line-height:1.65;
+  color:var(--ink-quiet); max-width:32ch; }
+
+.js .cover__main{ position:absolute; left:var(--pad); bottom:7rem; z-index:2; max-width:40rem; }
+.js .cover__note,.js .cover__credit{ position:absolute; z-index:2; margin:0; }
+.js .cover__note--tl{ top:1.6rem; left:var(--pad); }
+.js .cover__note--tr{ top:1.6rem; right:var(--pad); text-align:right; }
+.js .cover__note--bl{ bottom:1.6rem; left:var(--pad); }
+.js .cover__credit{ bottom:1.6rem; right:var(--pad); text-align:right; max-width:30ch; }
+/* the credit describes the rendered cell; without JS there is no cell, and
+   the 2D fallback is not that cell, so in both cases it is not shown */
+.cover--field .cover__credit,html:not(.js) .cover__credit{ display:none; }
 
 @media (max-width:759.98px){
-  /* the cell sits in the upper part of the stage; type sits below it */
-  .js .cover__panel{ align-items:flex-end; padding-bottom:5.5rem; }
-  .js .cover__panel--a{ padding-bottom:4.5rem; }
-  .cover--field .cover__field{ left:0; width:100%; height:42%; }
-  /* on phones the type fills the bottom of the stage, so the caption sits
-     at the top, beside the cell it describes */
-  .cover__caption{ left:var(--pad); right:auto; text-align:left; top:.8rem; bottom:auto; }
-  .cover__line{ margin-top:1.4rem; }
+  .js .cover__field{ left:0; width:100%; height:46%; }
+  .js .cover__note--tl,.js .cover__note--tr{ top:1rem; max-width:46%; }
+  .js .cover__note--bl,.js .cover__credit{ bottom:1rem; max-width:46%; }
+  .js .cover__main{ bottom:7.2rem; right:var(--pad); }
+  .cover__line{ margin-top:1rem; }
+  .cover .btn-row{ margin-top:1.2rem; }
+  .cover__parts li{ font-size:.625rem; }
 }
-@media (prefers-reduced-motion:reduce){
-  /* no crossfades: every panel stays fully visible */
-  .js .cover__panel{ opacity:1 !important; }
+@media (max-height:620px) and (min-width:760px){
+  .js .cover__main{ bottom:3.6rem; }
+  .cover__name{ font-size:clamp(2.6rem,6vw,4.5rem); }
 }
 
 /* ══ onward ══════════════════════════════════════════════════════════════ */
@@ -447,13 +489,13 @@ a.btn,a.btn-ghost{ border-bottom-width:1px; }
 .card p{ margin:.9rem 0 0; font-size:.95rem; line-height:1.6; color:var(--ink-soft); }
 
 /* ── full-bleed band ─────────────────────────────────────────────────────── */
-.bleed{ background:var(--ink); color:var(--paper); overflow:hidden; padding:8rem 0; }
-.bleed .eyebrow{ color:rgba(247,242,244,.62); }
-.bleed .h-section{ color:var(--paper); max-width:22ch;
+.bleed{ background:var(--band); color:var(--ink); overflow:hidden; padding:8rem 0; }
+.bleed .eyebrow{ color:var(--ink-note); }
+.bleed .h-section{ color:var(--ink); max-width:22ch;
                    font-size:clamp(1.9rem,3vw,2.7rem); }
-.bleed .subhead{ color:rgba(247,242,244,.62); }
+.bleed .subhead{ color:var(--ink-soft); }
 .bleed__fig{ margin-top:4rem; }
-.bleed__inner{ background:rgba(247,242,244,.04); border:1px solid rgba(247,242,244,.14);
+.bleed__inner{ background:var(--ground); border:1px solid var(--hairline);
                padding:2.5rem; }
 @media (min-width:1000px){
   .bleed .wrap{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr);
@@ -463,7 +505,7 @@ a.btn,a.btn-ghost{ border-bottom-width:1px; }
   .bleed .subhead  { grid-column:1; grid-row:3; }
   .bleed__fig      { grid-column:2; grid-row:1 / 4; margin-top:0; }
 }
-.bleed figcaption{ color:rgba(247,242,244,.55); }
+.bleed figcaption{ color:var(--ink-note); }
 .bleed #roc{ background:transparent; border:0; padding:0; }
 
 /* ── demo ────────────────────────────────────────────────────────────────── */
@@ -527,9 +569,8 @@ a.btn,a.btn-ghost{ border-bottom-width:1px; }
 .result__img{ display:flex; flex-direction:column; align-items:center; gap:1rem; }
 #preview{ display:block; width:min(340px,58vw); height:auto; aspect-ratio:1;
           background:var(--paper); border:1px solid var(--rule-bold);
-          box-shadow:0 18px 50px rgba(46,26,61,.10);
           transition:border-color .3s var(--ease), box-shadow .3s var(--ease); }
-.result.is-flagged #preview{ border-color:var(--violet); box-shadow:0 18px 50px rgba(86,40,126,.20); }
+.result.is-flagged #preview{ border-color:var(--violet); }
 .result__img p.mono{ margin:0; font-size:.72rem; color:var(--ink-note); }
 
 .result__verdict{ font-family:var(--display); font-size:clamp(1.6rem,2.6vw,2.2rem);
@@ -573,8 +614,8 @@ a.btn,a.btn-ghost{ border-bottom-width:1px; }
 #roc svg,#splitfig svg{ display:block; width:100%; height:auto; }
 .roc-pending{
   margin:0; padding:3.5rem 1rem; text-align:center;
-  font-family:var(--mono); font-size:.8rem; color:rgba(247,242,244,.42);
-  border:1px dashed rgba(247,242,244,.18);
+  font-family:var(--mono); font-size:.8rem; color:var(--ink-note);
+  border:1px dashed var(--hairline);
 }
 figcaption,.tcaption,caption{ font-family:var(--body); font-size:.875rem; line-height:1.6;
   color:var(--ink-note); max-width:62ch; }
@@ -799,8 +840,10 @@ html.js-anim .disclaimer [data-reveal]{
 
 @media print{
   .nav,.loader,.cover__stage{ display:none !important; }
-  .cover__panels{ margin-top:0 !important; }
-  .cover__panel{ opacity:1 !important; min-height:0 !important; }
+  .cover__pointers,.cover__parts,.cover__cell,.cover__field{ display:none !important; }
+  .js .cover{ height:auto !important; }
+  .js .cover__stage{ position:static !important; height:auto !important; padding:2rem 0 !important; }
+  .js .cover__main,.js .cover__note,.js .cover__credit{ position:static !important; margin-top:1rem !important; }
   /* a section the reader never scrolled to never had its observer fire, so
      without this every reveal in it would print at opacity 0 */
   html.js-anim [data-reveal],

@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Try the model – Astraea Health</title>
+<meta name="description" content="Run the Astraea Health model on one isolated cell image, in your browser. A research prototype, not a medical device.">
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     SITE URL — the deploy origin. The site has two pages, and each carries
+     its own absolute URLs: canonical, og:url and og:image (tagged [SITE URL]
+     below), plus the "url" field inside the JSON-LD block, which cannot carry
+     a tag because JSON forbids comments.
+
+     The site is served from the custom domain in CNAME. Moving it again
+     means editing those in index.html, research.html and demo.html, plus:
+         robots.txt    the `Sitemap:` line
+         sitemap.xml   all three `<loc>` lines
+     The root URL keeps its trailing slash (canonical, og:url, JSON-LD "url"
+     and the first <loc>); a canonical that disagrees with the served URL by
+     a slash is treated as a different page. URLs ending in a filename take
+     no slash: research.html, og-card.png, and the `Sitemap:` line.
+
+     These cannot be collapsed into one runtime constant: Open Graph and
+     Twitter scrapers do not execute JavaScript, so the absolute URL has to be
+     literal in the markup by the time the page is served.
+═══════════════════════════════════════════════════════════════════════════ -->
+<link rel="canonical" href="https://astraeahealth.org/demo.html"><!-- [SITE URL] -->
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Astraea Health">
+<meta property="og:title" content="Try the model – Astraea Health">
+<meta property="og:description" content="Run the Astraea Health model on one isolated cell image, in your browser. A research prototype, not a medical device.">
+<meta property="og:url" content="https://astraeahealth.org/demo.html"><!-- [SITE URL] -->
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://astraeahealth.org/og-card.png"><!-- [SITE URL] -->
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="A typographic card on a deep violet-black ground: a small violet dot, the title &quot;Cell-level triage for acute lymphoblastic leukemia&quot; in pale ink, a line reading 0.959 precision, 0.858 AUC, 1,882 cells, and beneath it in rose: missed 243 of 1,094 leukemic cells.">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Try the model – Astraea Health">
+<meta name="twitter:description" content="Run the Astraea Health model on one isolated cell image, in your browser. A research prototype, not a medical device.">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "Try the model",
+  "url": "https://astraeahealth.org/demo.html",
+  "description": "Run the Astraea Health model on one isolated cell image, in your browser. A research prototype, not a medical device.",
+  "isPartOf": { "@type": "WebSite", "name": "Astraea Health", "url": "https://astraeahealth.org/" },
+  "inLanguage": "en",
+  "creator": [
+    { "@type": "Person", "name": "Aniketh Guttikonda" },
+    { "@type": "Person", "name": "Eugene Choi" }
+  ],
+  "disambiguatingDescription": "A student research project, not a medical device. It ranks pre-segmented single-cell images by visual similarity to leukemic lymphoblasts for a qualified reviewer; it does not detect or diagnose leukemia and must not inform a clinical decision."
+}
+</script>
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#120B19">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23120B19'/%3E%3Ccircle cx='16' cy='16' r='9' fill='%239A72D8' opacity='.22'/%3E%3Ccircle cx='14' cy='14' r='5.5' fill='%239A72D8'/%3E%3C/svg%3E">
+<link rel="preload" href="fonts/newsreader.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/ibm-plex-mono-500.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css">
+<script>
+/* Runs before first paint. Marks the document as scripted. Anchors that
+   belong to the landing page or the research page forward there. */
+(function () {
+  var h = (location.hash || '').slice(1);
+  if ({ 'what':1, 'intro':1, 'impact':1, 'background':1, 'results':1, 'sec-results':1, 'tradeoff':1, 'method':1, 'sec-method':1, 'validation':1, 'limits':1 }[h]) { location.replace('research.html#' + h); return; }
+  if ({ 'top':1, 'why':1 }[h]) { location.replace('index.html#' + h); return; }
+  document.documentElement.className += ' js';
+})();
+</script>
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<!-- ─────────────────────────────  nav  ───────────────────────────── -->
+<header class="nav" id="nav">
+  <div class="wrap nav__bar">
+    <a class="nav__mark" href="index.html">Astraea Health</a>
+    <button type="button" class="nav__toggle" id="navToggle"
+      aria-expanded="false" aria-controls="navList" hidden>Menu</button>
+    <nav class="nav__nav" aria-label="Sections">
+      <ul class="nav__list" id="navList">
+        <li hidden><a href="index.html#why">Why</a></li><!-- hidden until the Why text is supplied -->
+        <li><a href="research.html#what">What it does</a></li>
+        <li><a href="research.html#background">Background</a></li>
+        <li><a href="research.html#results">Results</a></li>
+        <li><a href="research.html#method">Method</a></li>
+        <li><a href="research.html#limits">Limits</a></li>
+        <li class="nav__demo"><a href="#demo">Demo</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="main" class="demo-page">
+
+<header class="research__head">
+  <div class="wrap">
+    <h1 class="research__title">Try the model</h1>
+  </div>
+</header>
+
+<!-- ─────────────────────────────  demo  ───────────────────────────── -->
+<div class="group" id="demo">
+<div class="wrap"><h2 class="runhead"><span class="runhead__i">01</span>Demo</h2></div>
+
+<!-- ─────────────────────────────  demo  ───────────────────────────── -->
+<section class="section" id="sec-demo">
+  <div class="wrap">
+    <p class="eyebrow" data-reveal>try it</p>
+    <h2 class="h-section">
+      <span class="mask"><span>Run the actual model</span></span>
+      <span class="mask"><span>on an actual cell.</span></span>
+    </h2>
+    <div class="prose" data-reveal>
+      <p>This is the same ResNet-50 that produced every number on the
+      <a href="research.html">research page</a>, exported to ONNX and
+      executed locally with <span class="mono">onnxruntime-web</span>. Your image is read into a
+      canvas, resized to 224&times;224, and passed to the network without leaving your device.</p>
+      <p>The weights are stored at float16, the precision the network was trained and evaluated
+      at. That halves the download and moves the score by up to about 0.002 against the float32
+      export, so treat the third decimal as noise.</p>
+    </div>
+
+    <div class="demo-frame" id="demoRoot">
+
+      <div class="disclaimer">
+        <p><strong>Before you use this: it is not a diagnostic tool.</strong> It is a student
+        research prototype, not a medical device, and it has never been validated in a clinic. It
+        does not detect leukemia and it does not diagnose anyone — it assigns a similarity score
+        to a picture of a single cell that has already been cut out of a slide. It is designed to
+        sit in front of a qualified reviewer who examines every cell regardless, and nothing it
+        outputs should be used to make a decision about a person.</p>
+      </div>
+
+      <div class="demo__note">
+        <p><b>What this accepts:</b> one isolated white blood cell, roughly centred, on a plain
+        background, cut out of an already-segmented smear — the kind of image C-NMC is made
+        of. A photograph of a whole slide, a field of many cells, or anything that is not a
+        stained cell will still return a confident-looking number, and that number will be
+        meaningless.</p>
+      </div>
+
+      <div class="ack">
+        <input type="checkbox" id="ack">
+        <label for="ack">I have read the above. I understand this is a research prototype, not a
+        medical device, and that nothing it outputs should be used to make a decision about a
+        person.</label>
+      </div>
+
+      <div class="demo__grid">
+        <div class="demo__col">
+          <p class="demo__step">1 — Load the network</p>
+          <button type="button" id="loadBtn" class="btn" disabled>Load model <span class="dim">· 48 MB</span></button>
+          <div class="progress" id="progressWrap" hidden>
+            <div class="progress__bar"><i id="progressBar"></i></div>
+            <p class="progress__txt" id="progressTxt">0%</p>
+          </div>
+          <p class="demo__hint" id="modelStatus">Tick the box above to enable.</p>
+        </div>
+
+        <div class="demo__col">
+          <p class="demo__step">2 — Choose a cell image</p>
+          <label class="filelabel" for="file" id="fileLabel">
+            <input type="file" id="file" accept="image/*" disabled>
+            <span class="dropzone" id="dropzone">
+              <span class="dropzone__label">Choose image…</span>
+              <span class="dropzone__hint">or drop one here</span>
+            </span>
+          </label>
+          <p class="demo__hint" id="fileHint">Load the network first.</p>
+        </div>
+      </div>
+
+      <div class="result" id="result" hidden>
+        <div class="result__img">
+          <canvas id="preview" width="224" height="224" aria-label="The 224 by 224 crop passed to the network"></canvas>
+          <p class="mono">what the network saw</p>
+        </div>
+        <div class="result__read">
+          <p class="result__verdict" id="verdict" data-stagger></p>
+          <p class="result__prob" data-stagger>
+            <span class="result__p" id="prob">0.000</span>
+            <span class="result__plabel">P(leukemic), against a threshold of
+              <b id="thrInline">0.770</b></span>
+          </p>
+          <div class="meter" id="meter" data-stagger>
+            <div class="meter__track"><i id="meterFill"></i><u id="meterMark"></u></div>
+            <p class="meter__scale"><span>0.000</span><span id="thrScale">threshold 0.770</span><span>1.000</span></p>
+          </div>
+          <p class="result__caveat" data-stagger>A score, not a finding. This tool ranks cells for
+          a reviewer who reads all of them; it does not clear a cell and it does not diagnose
+          anyone.</p>
+        </div>
+      </div>
+
+      <p class="demo__error" id="demoError" hidden></p>
+
+      <noscript><p class="demo__error">The demo needs JavaScript. Everything else on this
+      page works without it.</p></noscript>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<!-- ─────────────────────────────  onward  ───────────────────────────── -->
+<section class="section onward" id="onward">
+  <div class="wrap">
+    <p class="eyebrow" data-reveal>the research</p>
+    <p class="miss-line" data-reveal>At the 0.770 threshold it missed <b>243 of 1,094</b> leukemic
+    cells in the test set — sensitivity 0.778. An unflagged cell has not been cleared; the
+    reviewer still reads every one.</p>
+    <p class="onward__text" data-reveal>How the model was built and tested, every
+    measurement behind it, and where it does not apply are set out in full on the research
+    page.</p>
+    <div class="btn-row" data-reveal>
+      <a class="btn" href="research.html">Read the research</a>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────  closing  ───────────────────────────── -->
+<footer class="cta group" id="credits">
+  <div class="wrap">
+    <h2 class="runhead"><span class="runhead__i">02</span>Credits</h2>
+    <h2 class="h-statement">
+      <span class="mask"><span>Screening support</span></span>
+      <span class="mask"><span>that runs anywhere</span></span>
+      <span class="mask"><span>a browser does.</span></span>
+    </h2>
+    <p class="subhead" data-reveal>No server, no upload, no account — 47.7 MB and a tab.</p>
+    <div class="btn-row" data-reveal>
+      <a class="btn" href="#sec-demo">Try the demo</a>
+      <a class="btn-ghost" href="research.html#sec-method">How it works</a>
+    </div>
+
+    <div class="disclaimer disclaimer--foot">
+      <p><strong>Disclaimer.</strong> This is a student research project and not a medical device.
+      It has not been validated clinically, cleared by any regulator, or tested outside the single
+      public dataset it was trained on. It does not detect or diagnose leukemia; it ranks
+      pre-segmented single-cell images by visual similarity to leukemic lymphoblasts, for a
+      qualified reviewer who examines every cell regardless. Nothing on this page or produced by
+      the demo should be used to inform a clinical decision about any person.</p>
+    </div>
+
+    <div class="credits" data-reveal>
+      <p class="wordmark">Astraea Health</p>
+      <p class="credits__names"><span>Aniketh&nbsp;Guttikonda, Founder</span>
+      <span>Eugene&nbsp;Choi</span></p>
+      <p class="colophon">Built while in high school. The dataset is C-NMC 2019, released for
+      the ISBI 2019 challenge; we did not collect it. The model, the split, and the evaluation
+      are ours. No tracking, no analytics, no cookies — the demo runs entirely in your
+      browser.</p>
+      <p class="citation">Data: Mourya, S., Kant, S., Kumar, P., Gupta, A., &amp; Gupta, R.
+      (2019). <i>ALL Challenge dataset of ISBI 2019 (C-NMC 2019)</i> (Version 1) [Data set].
+      The Cancer Imaging Archive.
+      <a href="https://doi.org/10.7937/tcia.2019.dc64i46r">doi.org/10.7937/tcia.2019.dc64i46r</a>.
+      Used under CC BY 3.0.</p>
+    </div>
+  </div>
+</footer>
+
+</main>
+
+<script defer src="nav.js"></script>
+<script defer src="site.js"></script>
+<script defer src="demo.js"></script>
+</body>
+</html>

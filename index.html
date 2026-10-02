@@ -13,9 +13,9 @@
      a tag because JSON forbids comments.
 
      The site is served from the custom domain in CNAME. Moving it again
-     means editing those in both index.html and research.html, plus:
+     means editing those in index.html, research.html and demo.html, plus:
          robots.txt    the `Sitemap:` line
-         sitemap.xml   both `<loc>` lines
+         sitemap.xml   all three `<loc>` lines
      The root URL keeps its trailing slash (canonical, og:url, JSON-LD "url"
      and the first <loc>); a canonical that disagrees with the served URL by
      a slash is treated as a different page. URLs ending in a filename take
@@ -37,7 +37,7 @@
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="A typographic card on pale pink paper: a small violet dot, the title &quot;Cell-level triage for acute lymphoblastic leukemia&quot; in dark violet ink, a line reading 0.959 precision, 0.858 AUC, 1,882 cells, and beneath it in rose: missed 243 of 1,094 leukemic cells.">
+<meta property="og:image:alt" content="A typographic card on a deep violet-black ground: a small violet dot, the title &quot;Cell-level triage for acute lymphoblastic leukemia&quot; in pale ink, a line reading 0.959 precision, 0.858 AUC, 1,882 cells, and beneath it in rose: missed 243 of 1,094 leukemic cells.">
 
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Cell-level triage for leukemia – Astraea Health">
@@ -63,30 +63,30 @@
   "disambiguatingDescription": "A student research project, not a medical device. It ranks pre-segmented single-cell images by visual similarity to leukemic lymphoblasts for a qualified reviewer; it does not detect or diagnose leukemia and must not inform a clinical decision."
 }
 </script>
-<meta name="color-scheme" content="light">
-<meta name="theme-color" content="#F7F2F4">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23F7F2F4'/%3E%3Ccircle cx='16' cy='16' r='9' fill='%2356287E' opacity='.22'/%3E%3Ccircle cx='14' cy='14' r='5.5' fill='%2356287E'/%3E%3C/svg%3E">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#120B19">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23120B19'/%3E%3Ccircle cx='16' cy='16' r='9' fill='%239A72D8' opacity='.22'/%3E%3Ccircle cx='14' cy='14' r='5.5' fill='%239A72D8'/%3E%3C/svg%3E">
 <link rel="preload" href="fonts/newsreader.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/ibm-plex-mono-500.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="style.css">
 <script>
 /* Runs before anything is painted, in this order:
 
-   1. Old deep links. Until the site split in two, everything lived on this
-      page. Anchors for research content now live on research.html, and
-      GitHub Pages cannot redirect on the server, so forward them here,
-      keeping the hash. replace() keeps the old URL out of the history, so
-      Back does not bounce the visitor straight forward again.
-   2. #overview was the old Overview tab and never named an element.
+   1. Old deep links. Until the site was split, everything lived on this
+      page. Anchors for research content now live on research.html and the
+      demo on demo.html, and GitHub Pages cannot redirect on the server, so
+      forward them, keeping the hash. replace() keeps the old URL out of the
+      history, so Back does not bounce the visitor straight forward again.
+   2. #overview was the old Overview tab; it became What it does.
    3. Mark the document as scripted, and raise the loading screen. It is
       lowered by cover.js on the cell's first frame, and by the timer below
       after 3 s whatever happens, so it can never be left covering the page.
       With JavaScript off none of this runs and there is no loading screen. */
 (function () {
   var d = document.documentElement, h = (location.hash || '').slice(1);
-  var R = { 'background':1, 'impact':1, 'results':1, 'sec-results':1, 'tradeoff':1, 'method':1, 'sec-method':1, 'validation':1, 'limits':1 };
-  if (R[h]) { location.replace('research.html#' + h); return; }
-  if (h === 'overview' && history.replaceState) history.replaceState(null, '', '#what');
+  if (h === 'overview') h = 'what';
+  if ({ 'what':1, 'intro':1, 'impact':1, 'background':1, 'results':1, 'sec-results':1, 'tradeoff':1, 'method':1, 'sec-method':1, 'validation':1, 'limits':1 }[h]) { location.replace('research.html#' + h); return; }
+  if ({ 'demo':1, 'sec-demo':1, 'onward':1 }[h]) { location.replace('demo.html#' + h); return; }
   d.className += ' js is-loading';
   var t = setTimeout(done, 3000);
   function done () { clearTimeout(t); d.classList.remove('is-loading'); }
@@ -109,12 +109,12 @@
     <nav class="nav__nav" aria-label="Sections">
       <ul class="nav__list" id="navList">
         <li hidden><a href="#why">Why</a></li><!-- hidden until the Why text is supplied -->
-        <li><a href="#what">What it does</a></li>
-        <li><a href="#demo">Demo</a></li>
-        <li class="nav__split"><a href="research.html#background">Background</a></li>
+        <li><a href="research.html#what">What it does</a></li>
+        <li><a href="research.html#background">Background</a></li>
         <li><a href="research.html#results">Results</a></li>
         <li><a href="research.html#method">Method</a></li>
         <li><a href="research.html#limits">Limits</a></li>
+        <li class="nav__demo"><a href="demo.html#demo">Demo</a></li>
       </ul>
     </nav>
   </div>
@@ -123,46 +123,42 @@
 <main id="main">
 
 <!-- ─────────────────────────────  cover  ─────────────────────────────
-     A tall cover with a sticky stage. The page scrolls natively; the stage
-     holds the cell in view while the three panels pass over it. With JS off
-     the stage is hidden and the panels are plain text, one after another. -->
+     The cover is the whole landing page. A sticky stage holds the cell in
+     view while the page scrolls natively; the type sits in the stage's
+     corners as annotation. With JS off the stage is an ordinary block and
+     the text stacks in reading order. -->
 <header class="cover" id="top">
   <div class="cover__stage">
     <canvas class="cover__cell" id="cell" role="img"
-      aria-label="Illustration of a lymphoblast, drawn from noise in code: a large violet nucleus inside a pale cell. Not an image of a real cell."></canvas>
+      aria-label="Illustration of a lymphoblast, drawn from noise in code and lit as if under darkfield illumination: a large violet nucleus inside a pale cell, labelled nucleus, cytoplasm and membrane. Not an image of a real cell."></canvas>
     <canvas class="cover__field" id="coverfield" role="img"
       aria-label="A quiet field of 1,882 faint points, one for each cell in the held-out test set, arranged at random."></canvas>
-    <p class="cover__caption">Illustration, drawn from noise in code. Not an image of a real cell.</p>
-  </div>
-  <div class="cover__panels">
-    <div class="cover__panel cover__panel--a">
-      <div class="wrap">
-        <h1 class="cover__name"><span>Astraea</span> <span>Health</span></h1>
-        <p class="cover__line">It puts microscope images of single blood cells in order, so the
-        person checking them sees the most leukemia-like cells first.</p>
+    <svg class="cover__pointers" id="pointers" aria-hidden="true"></svg>
+    <ul class="cover__parts" id="parts" aria-hidden="true">
+      <li data-part="nucleus">Nucleus</li>
+      <li data-part="cytoplasm">Cytoplasm</li>
+      <li data-part="membrane">Membrane</li>
+    </ul>
+
+    <div class="cover__main">
+      <h1 class="cover__name"><span>Astraea</span> <span>Health</span></h1>
+      <p class="cover__line">It puts microscope images of single blood cells in order, so the
+      person checking them sees the most leukemia-like cells first.</p>
+      <div class="btn-row">
+        <a class="btn" href="research.html#what">Read on</a>
       </div>
     </div>
-    <div class="cover__panel">
-      <div class="wrap">
-        <p class="cover__beat">Developed on 13,315 single-cell microscopy images from 73 people.</p>
-      </div>
-    </div>
-    <div class="cover__panel cover__panel--c">
-      <div class="wrap">
-        <p class="cover__beat">Runs entirely in your browser. Free, no upload, no account.</p>
-        <div class="btn-row">
-          <a class="btn" href="#what">Read on</a>
-        </div>
-        <p class="cover__foot">Presented internationally at a research collaboration in Austria</p>
-      </div>
-    </div>
+    <p class="cover__note cover__note--tl">Developed on 13,315 single-cell microscopy images from 73 people.</p>
+    <p class="cover__note cover__note--tr">Runs entirely in your browser. Free, no upload, no account.</p>
+    <p class="cover__note cover__note--bl">Presented internationally at a research collaboration in Austria</p>
+    <p class="cover__credit">Illustration, drawn from noise in code. Not an image of a real cell.</p>
   </div>
 </header>
 
 <!-- ─────────────────────────────  why  ─────────────────────────────
      Hidden until the text is supplied. To restore: remove `hidden` here and
-     on the Why nav item in both pages, point "Read on" back at #why, and
-     renumber this page's running heads 01–04. -->
+     on the Why nav item in all three pages, and point "Read on" back at
+     #why. -->
 <section class="group why" id="why" hidden>
   <div class="wrap">
     <h2 class="runhead"><span class="runhead__i">01</span>Why</h2>
@@ -172,161 +168,10 @@
   </div>
 </section>
 
-<!-- ─────────────────────────────  what it does  ───────────────────────────── -->
-<div class="group" id="what">
-<div class="wrap"><h2 class="runhead"><span class="runhead__i">01</span>What it does</h2></div>
-
-<section class="section section--lead" id="intro">
-  <div class="wrap">
-    <p class="eyebrow" data-reveal>cell-level triage for leukemia screening</p>
-    <h2 class="h-section">
-      <span class="mask"><span>The cells that matter most,</span></span>
-      <span class="mask"><span>seen first.</span></span>
-    </h2>
-    <p class="subhead" data-reveal>Acute lymphoblastic leukemia is diagnosed by examining a blood
-      smear one cell at a time. This network ranks every cell by how closely it resembles a leukemic
-      lymphoblast, so the reviewer reaches the most suspicious ones sooner — running entirely in the
-      browser, with no image ever leaving the device.</p>
-    <!-- the first two paragraphs of "Same cells, same reviewer, better order";
-         the full section, with its third paragraph, is on research.html -->
-    <div class="prose" data-reveal>
-      <p>The model takes one already-isolated cell image and returns a number between 0 and 1: how
-      closely it resembles the leukemic lymphoblasts it was trained on. Run across a smear, those
-      numbers give an <strong>order</strong> — the cells most worth a second look, first.</p>
-      <p>That is the whole idea, and it is deliberately modest. Nothing is removed from the
-      review. Nothing is decided. The reviewer still sees every cell on the slide; they simply
-      reach the interesting ones earlier instead of working through in arbitrary order. On a
-      slide carrying hundreds of cells, the order you meet them in is most of the work.</p>
-    </div>
-  </div>
-</section>
-
-</div>
-
-<!-- ─────────────────────────────  demo  ───────────────────────────── -->
-<div class="group" id="demo">
-<div class="wrap"><h2 class="runhead"><span class="runhead__i">02</span>Demo</h2></div>
-
-<!-- ─────────────────────────────  demo  ───────────────────────────── -->
-<section class="section" id="sec-demo">
-  <div class="wrap">
-    <p class="eyebrow" data-reveal>try it</p>
-    <h2 class="h-section">
-      <span class="mask"><span>Run the actual model</span></span>
-      <span class="mask"><span>on an actual cell.</span></span>
-    </h2>
-    <div class="prose" data-reveal>
-      <p>This is the same ResNet-50 that produced every number on the
-      <a href="research.html">research page</a>, exported to ONNX and
-      executed locally with <span class="mono">onnxruntime-web</span>. Your image is read into a
-      canvas, resized to 224&times;224, and passed to the network without leaving your device.</p>
-      <p>The weights are stored at float16, the precision the network was trained and evaluated
-      at. That halves the download and moves the score by up to about 0.002 against the float32
-      export, so treat the third decimal as noise.</p>
-    </div>
-
-    <div class="demo-frame" id="demoRoot">
-
-      <div class="disclaimer">
-        <p><strong>Before you use this: it is not a diagnostic tool.</strong> It is a student
-        research prototype, not a medical device, and it has never been validated in a clinic. It
-        does not detect leukemia and it does not diagnose anyone — it assigns a similarity score
-        to a picture of a single cell that has already been cut out of a slide. It is designed to
-        sit in front of a qualified reviewer who examines every cell regardless, and nothing it
-        outputs should be used to make a decision about a person.</p>
-      </div>
-
-      <div class="demo__note">
-        <p><b>What this accepts:</b> one isolated white blood cell, roughly centred, on a plain
-        background, cut out of an already-segmented smear — the kind of image C-NMC is made
-        of. A photograph of a whole slide, a field of many cells, or anything that is not a
-        stained cell will still return a confident-looking number, and that number will be
-        meaningless.</p>
-      </div>
-
-      <div class="ack">
-        <input type="checkbox" id="ack">
-        <label for="ack">I have read the above. I understand this is a research prototype, not a
-        medical device, and that nothing it outputs should be used to make a decision about a
-        person.</label>
-      </div>
-
-      <div class="demo__grid">
-        <div class="demo__col">
-          <p class="demo__step">1 — Load the network</p>
-          <button type="button" id="loadBtn" class="btn" disabled>Load model <span class="dim">· 48 MB</span></button>
-          <div class="progress" id="progressWrap" hidden>
-            <div class="progress__bar"><i id="progressBar"></i></div>
-            <p class="progress__txt" id="progressTxt">0%</p>
-          </div>
-          <p class="demo__hint" id="modelStatus">Tick the box above to enable.</p>
-        </div>
-
-        <div class="demo__col">
-          <p class="demo__step">2 — Choose a cell image</p>
-          <label class="filelabel" for="file" id="fileLabel">
-            <input type="file" id="file" accept="image/*" disabled>
-            <span class="dropzone" id="dropzone">
-              <span class="dropzone__label">Choose image…</span>
-              <span class="dropzone__hint">or drop one here</span>
-            </span>
-          </label>
-          <p class="demo__hint" id="fileHint">Load the network first.</p>
-        </div>
-      </div>
-
-      <div class="result" id="result" hidden>
-        <div class="result__img">
-          <canvas id="preview" width="224" height="224" aria-label="The 224 by 224 crop passed to the network"></canvas>
-          <p class="mono">what the network saw</p>
-        </div>
-        <div class="result__read">
-          <p class="result__verdict" id="verdict" data-stagger></p>
-          <p class="result__prob" data-stagger>
-            <span class="result__p" id="prob">0.000</span>
-            <span class="result__plabel">P(leukemic), against a threshold of
-              <b id="thrInline">0.770</b></span>
-          </p>
-          <div class="meter" id="meter" data-stagger>
-            <div class="meter__track"><i id="meterFill"></i><u id="meterMark"></u></div>
-            <p class="meter__scale"><span>0.000</span><span id="thrScale">threshold 0.770</span><span>1.000</span></p>
-          </div>
-          <p class="result__caveat" data-stagger>A score, not a finding. This tool ranks cells for
-          a reviewer who reads all of them; it does not clear a cell and it does not diagnose
-          anyone.</p>
-        </div>
-      </div>
-
-      <p class="demo__error" id="demoError" hidden></p>
-
-      <noscript><p class="demo__error">The demo needs JavaScript. Everything else on this
-      page works without it.</p></noscript>
-    </div>
-  </div>
-</section>
-
-</div>
-
-<!-- ─────────────────────────────  onward  ───────────────────────────── -->
-<section class="section onward" id="onward">
-  <div class="wrap">
-    <p class="eyebrow" data-reveal>the research</p>
-    <p class="miss-line" data-reveal>At the 0.770 threshold it missed <b>243 of 1,094</b> leukemic
-    cells in the test set — sensitivity 0.778. An unflagged cell has not been cleared; the
-    reviewer still reads every one.</p>
-    <p class="onward__text" data-reveal>How the model was built and tested, every
-    measurement behind it, and where it does not apply are set out in full on the research
-    page.</p>
-    <div class="btn-row" data-reveal>
-      <a class="btn" href="research.html">Read the research</a>
-    </div>
-  </div>
-</section>
-
 <!-- ─────────────────────────────  closing  ───────────────────────────── -->
 <footer class="cta group" id="credits">
   <div class="wrap">
-    <h2 class="runhead"><span class="runhead__i">03</span>Credits</h2>
+    <h2 class="runhead">Credits</h2>
     <h2 class="h-statement">
       <span class="mask"><span>Screening support</span></span>
       <span class="mask"><span>that runs anywhere</span></span>
@@ -334,7 +179,7 @@
     </h2>
     <p class="subhead" data-reveal>No server, no upload, no account — 47.7 MB and a tab.</p>
     <div class="btn-row" data-reveal>
-      <a class="btn" href="#sec-demo">Try the demo</a>
+      <a class="btn" href="demo.html">Try the demo</a>
       <a class="btn-ghost" href="research.html#sec-method">How it works</a>
     </div>
 
@@ -369,6 +214,5 @@
 <script defer src="nav.js"></script>
 <script defer src="site.js"></script>
 <script defer src="cover.js"></script>
-<script defer src="demo.js"></script>
 </body>
 </html>
